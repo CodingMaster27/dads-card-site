@@ -127,11 +127,10 @@ function renderGallery() {
   const main = document.getElementById('main-content');
   main.innerHTML = '';
   const hasAny = allCards.length > 0;
-  document.getElementById('empty-msg').classList.toggle('hidden', hasAny || isAdmin);
+  document.getElementById('empty-msg').classList.add('hidden');
 
   GROUPS.forEach(group => {
     const cards = allCards.filter(c => c.occasion === group.key);
-    if (cards.length === 0 && !isAdmin) return;
 
     const section = document.createElement('section');
     section.className = 'group';
@@ -142,7 +141,7 @@ function renderGallery() {
         <span class="group-count">${cards.length} card${cards.length !== 1 ? 's' : ''}</span>
       </div>
       <div class="group-grid"></div>
-      ${cards.length === 0 ? '<p class="empty-group">No cards yet — add one!</p>' : ''}
+      ${cards.length === 0 ? `<p class="empty-group">${isAdmin ? 'No cards yet — add one!' : 'Coming soon ✦'}</p>` : ''}
     `;
 
     const grid = section.querySelector('.group-grid');
