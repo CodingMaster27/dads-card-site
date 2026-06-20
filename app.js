@@ -19,7 +19,11 @@ document.getElementById('password-input').addEventListener('keydown', e => {
 function tryUnlock() {
   const val = document.getElementById('password-input').value;
   if (val === VIEW_PASSWORD || val === ADMIN_PASSWORD) {
-    if (val === ADMIN_PASSWORD) activateAdmin();
+    if (val === ADMIN_PASSWORD) {
+      activateAdmin();
+    } else {
+      document.getElementById('admin-btn').classList.add('hidden');
+    }
     document.getElementById('lock-screen').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     renderGallery();
@@ -127,8 +131,10 @@ function renderGallery() {
       tile.innerHTML = `
         ${imgHtml}
         <div class="card-body">
-          <div class="card-year">${card.year}</div>
-          <div class="card-snippet">${card.message || ''}</div>
+          ${isAdmin
+            ? `<div class="card-year">${card.year}</div><div class="card-snippet">${card.message || ''}</div>`
+            : `<div class="card-cta">CLICK TO VIEW</div>`
+          }
         </div>
       `;
       tile.addEventListener('click', () => openViewModal(card));
