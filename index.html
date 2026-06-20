@@ -71,14 +71,21 @@
           <input type="number" id="card-year" min="1900" max="2100" />
         </label>
         <label>Message
-          <textarea id="card-message" rows="6" placeholder="Write the card message here…"></textarea>
+          <textarea id="card-message" rows="5" placeholder="Write the card message here…"></textarea>
         </label>
-        <label>Image (optional)
-          <input type="file" id="card-image" accept="image/*" />
-        </label>
-        <div id="card-image-preview-wrap" class="hidden">
-          <img id="card-image-preview" src="" alt="Preview" />
-          <button id="card-image-remove" class="btn-small btn-secondary">Remove image</button>
+        <div class="design-section">
+          <div class="design-label">Card Design <span class="design-badge">AI</span></div>
+          <p class="design-hint">Describe the art you want on the front cover and Claude will illustrate it.</p>
+          <textarea id="card-design-prompt" rows="3" placeholder="e.g. A golden sunset over the ocean with silhouettes of palm trees and a warm glow…"></textarea>
+          <button id="generate-design-btn" class="btn-generate">✦ Generate Card Design</button>
+          <div id="design-preview-wrap" class="hidden design-preview-wrap">
+            <div id="design-svg-preview" class="design-svg-preview"></div>
+            <button id="regenerate-btn" class="btn-small btn-secondary">↺ Regenerate</button>
+          </div>
+          <div id="design-loading" class="hidden design-loading">
+            <div class="design-spinner"></div>
+            <span>Claude is illustrating your card…</span>
+          </div>
         </div>
         <div class="modal-actions">
           <button id="card-cancel-btn" class="btn-secondary">Cancel</button>
