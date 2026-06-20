@@ -176,7 +176,17 @@ main {
   padding: 48px 32px 80px;
 }
 
-.group { margin-bottom: 64px; }
+#main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px 40px;
+}
+
+@media (max-width: 640px) {
+  #main-content { grid-template-columns: 1fr; }
+}
+
+.group { margin-bottom: 0; }
 
 .group-header {
   display: flex;

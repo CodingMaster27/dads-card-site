@@ -82,8 +82,7 @@ function renderGallery() {
   const main = document.getElementById('main-content');
   const emptyMsg = document.getElementById('empty-msg');
 
-  // Remove old groups
-  main.querySelectorAll('.group').forEach(g => g.remove());
+  main.innerHTML = '';
 
   const hasAny = CARDS.length > 0;
   emptyMsg.classList.toggle('hidden', hasAny);
