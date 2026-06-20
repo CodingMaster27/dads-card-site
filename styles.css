@@ -176,6 +176,12 @@ main {
   padding: 48px 32px 80px;
 }
 
+#home-screen {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
+}
+
 #main-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
