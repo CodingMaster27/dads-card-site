@@ -40,7 +40,9 @@ async function tryUnlock() {
     activateAdmin();
   } else {
     document.getElementById('admin-btn').classList.add('hidden');
-    document.getElementById('logged-in-label').classList.remove('hidden');
+    const label = document.getElementById('logged-in-label');
+    label.innerHTML = 'Logged in as: <strong>Best Dad Ever</strong>';
+    label.classList.remove('hidden');
   }
 
   await loadCards();
@@ -85,14 +87,18 @@ function confirmAdmin() {
 function activateAdmin() {
   isAdmin = true;
   document.getElementById('add-card-btn').classList.remove('hidden');
-  document.getElementById('admin-btn').textContent = 'Exit Admin';
+  document.getElementById('admin-btn').classList.add('hidden');
+  const label = document.getElementById('logged-in-label');
+  label.innerHTML = 'Logged in as: <strong>1st Spawn of Darren</strong>';
+  label.classList.remove('hidden');
   renderGallery();
 }
 
 function deactivateAdmin() {
   isAdmin = false;
   document.getElementById('add-card-btn').classList.add('hidden');
-  document.getElementById('admin-btn').textContent = 'Admin';
+  document.getElementById('admin-btn').classList.remove('hidden');
+  document.getElementById('logged-in-label').classList.add('hidden');
   renderGallery();
 }
 
