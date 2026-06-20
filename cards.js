@@ -10,14 +10,8 @@
 const CARDS = [
   {
     occasion: "Father's Day",
-    year: 2024,
+    year: 2026,
     message: "Happy Father's Day, Dad! Thank you for everything you do. We love you so much.",
-    image: null,
-  },
-  {
-    occasion: "Birthday",
-    year: 2023,
-    message: "Wishing you the happiest of birthdays. Hope this year brings you everything you deserve!",
     image: null,
   },
 ];

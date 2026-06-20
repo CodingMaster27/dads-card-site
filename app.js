@@ -176,7 +176,7 @@ function renderCardScreen() {
     .filter(c => c.occasion === currentOccasion)
     .sort((a, b) => b.year - a.year);
 
-  // Build year bar
+  // Year bar
   const yearBar = document.getElementById('year-bar');
   yearBar.innerHTML = '';
 
@@ -195,41 +195,76 @@ function renderCardScreen() {
     yearBar.appendChild(pill);
   });
 
-  // Show selected card
   const selected = cards.find(c => c.year === currentYear);
-  const img = document.getElementById('view-image');
-  const msg = document.getElementById('view-message');
+  const content = document.querySelector('.card-view-content');
+  content.innerHTML = '';
+
+  if (!selected) return;
+
+  // Image (if any)
+  if (selected.image) {
+    const img = document.createElement('img');
+    img.id = 'view-image';
+    img.src = selected.image;
+    img.alt = '';
+    content.appendChild(img);
+  }
+
+  // Tap hint
+  const hint = document.createElement('p');
+  hint.className = 'card-tap-hint';
+  hint.textContent = 'Tap the card to open it';
+  content.appendChild(hint);
+
+  // 3D card
+  const scene = document.createElement('div');
+  scene.className = 'card-3d-scene';
+
+  scene.innerHTML = `
+    <div class="card-3d" id="card3d">
+      <div class="card-face card-front">
+        <div class="card-front-border"></div>
+        <div class="card-front-corner tl"></div>
+        <div class="card-front-corner tr"></div>
+        <div class="card-front-corner bl"></div>
+        <div class="card-front-corner br"></div>
+        <div class="card-front-icon">${group.icon}</div>
+        <div class="card-front-occasion">${selected.occasion}</div>
+        <div class="card-front-year">${selected.year}</div>
+        <div class="card-front-tap">Tap to open</div>
+      </div>
+      <div class="card-face card-back">
+        <div class="card-back-lines">
+          ${Array(10).fill('<div class="card-back-line"></div>').join('')}
+        </div>
+        <div class="card-back-top-ornament">— ✦ —</div>
+        <div class="card-back-message">${selected.message || ''}</div>
+        <div class="card-back-signature">With love ♥</div>
+      </div>
+    </div>
+  `;
+
+  scene.addEventListener('click', () => {
+    const card3d = scene.querySelector('.card-3d');
+    card3d.classList.toggle('open');
+    hint.textContent = card3d.classList.contains('open') ? 'Tap to close' : 'Tap the card to open it';
+  });
+
+  content.appendChild(scene);
+
+  // Admin actions
   const adminActions = document.getElementById('view-admin-actions');
-
-  if (selected) {
-    if (selected.image) {
-      img.src = selected.image;
-      img.classList.remove('hidden');
-    } else {
-      img.classList.add('hidden');
-    }
-    msg.textContent = selected.message || '';
-    adminActions.classList.toggle('hidden', !isAdmin);
-
-    // Wire up edit/delete
+  adminActions.classList.toggle('hidden', !isAdmin);
+  if (isAdmin) {
     document.getElementById('view-edit-btn').onclick = () => openCardModal(selected);
     document.getElementById('view-delete-btn').onclick = () => {
       if (!confirm(`Delete this ${selected.occasion} card from ${selected.year}?`)) return;
       CARDS.splice(selected._index, 1);
       const remaining = CARDS.filter(c => c.occasion === currentOccasion);
-      if (remaining.length === 0) {
-        showHomeScreen();
-        renderGallery();
-      } else {
-        currentYear = null;
-        renderCardScreen();
-        renderGallery();
-      }
+      if (remaining.length === 0) { showHomeScreen(); renderGallery(); }
+      else { currentYear = null; renderCardScreen(); renderGallery(); }
     };
-  } else {
-    img.classList.add('hidden');
-    msg.textContent = '';
-    adminActions.classList.add('hidden');
+    content.appendChild(adminActions);
   }
 }
 
