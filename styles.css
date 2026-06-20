@@ -146,6 +146,15 @@ header {
 
 .header-actions { display: flex; gap: 8px; align-items: center; }
 
+.logged-in-label {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.logged-in-label strong { color: var(--gold-light); font-weight: 600; }
+
 .header-actions button {
   padding: 8px 18px;
   border-radius: 6px;

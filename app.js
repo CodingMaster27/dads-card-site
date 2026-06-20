@@ -1,7 +1,17 @@
-let isAdmin = false;
-let editingIndex = null;
+// ── Supabase setup ────────────────────────────────────────────────────────────
+const USING_SUPABASE = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+const db = USING_SUPABASE
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+const TABLE  = 'cards';
+const BUCKET = 'card-images';
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let isAdmin        = false;
+let allCards       = [...CARDS]; // seed from cards.js; replaced by Supabase when configured
+let editingId      = null;       // Supabase row id or local index
 let currentOccasion = null;
-let currentYear = null;
+let currentYear     = null;
 
 const GROUPS = [
   { key: "Father's Day", icon: '👔', label: "Father's Day" },
@@ -11,33 +21,37 @@ const GROUPS = [
 ];
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-
 document.getElementById('unlock-btn').addEventListener('click', tryUnlock);
 document.getElementById('password-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') tryUnlock();
 });
 
-function tryUnlock() {
+async function tryUnlock() {
   const val = document.getElementById('password-input').value;
-  if (val === VIEW_PASSWORD || val === ADMIN_PASSWORD) {
-    if (val === ADMIN_PASSWORD) {
-      activateAdmin();
-    } else {
-      document.getElementById('admin-btn').classList.add('hidden');
-    }
-    document.getElementById('lock-screen').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
-    renderGallery();
-  } else {
+  if (val !== VIEW_PASSWORD && val !== ADMIN_PASSWORD) {
     document.getElementById('lock-error').classList.remove('hidden');
+    return;
   }
+  document.getElementById('lock-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+
+  if (val === ADMIN_PASSWORD) {
+    activateAdmin();
+  } else {
+    document.getElementById('admin-btn').classList.add('hidden');
+    document.getElementById('logged-in-label').classList.remove('hidden');
+  }
+
+  await loadCards();
+  renderGallery();
 }
 
 document.getElementById('lock-btn').addEventListener('click', () => {
   isAdmin = false;
   document.getElementById('add-card-btn').classList.add('hidden');
-  document.getElementById('admin-btn').textContent = 'Admin';
   document.getElementById('admin-btn').classList.remove('hidden');
+  document.getElementById('admin-btn').textContent = 'Admin';
+  document.getElementById('logged-in-label').classList.add('hidden');
   document.getElementById('app').classList.add('hidden');
   document.getElementById('lock-screen').classList.remove('hidden');
   document.getElementById('password-input').value = '';
@@ -46,7 +60,6 @@ document.getElementById('lock-btn').addEventListener('click', () => {
 });
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
-
 document.getElementById('admin-btn').addEventListener('click', () => {
   if (isAdmin) { deactivateAdmin(); return; }
   showModal('admin-modal');
@@ -82,8 +95,15 @@ function deactivateAdmin() {
   renderGallery();
 }
 
-// ── Screen navigation ─────────────────────────────────────────────────────────
+// ── Load cards ────────────────────────────────────────────────────────────────
+async function loadCards() {
+  if (!USING_SUPABASE) return; // use cards.js defaults
+  const { data, error } = await db.from(TABLE).select('*').order('year', { ascending: false });
+  if (error) { console.error('Supabase load error:', error); return; }
+  allCards = data || [];
+}
 
+// ── Screen navigation ─────────────────────────────────────────────────────────
 function showHomeScreen() {
   document.getElementById('home-screen').classList.remove('hidden');
   document.getElementById('card-screen').classList.add('hidden');
@@ -103,23 +123,18 @@ function showCardScreen(occasion) {
 document.getElementById('back-btn').addEventListener('click', showHomeScreen);
 
 // ── Gallery ───────────────────────────────────────────────────────────────────
-
 function renderGallery() {
   const main = document.getElementById('main-content');
-  const emptyMsg = document.getElementById('empty-msg');
   main.innerHTML = '';
-
-  const hasAny = CARDS.length > 0;
-  emptyMsg.classList.toggle('hidden', hasAny);
-  if (!hasAny) return;
+  const hasAny = allCards.length > 0;
+  document.getElementById('empty-msg').classList.toggle('hidden', hasAny || isAdmin);
 
   GROUPS.forEach(group => {
-    const cards = CARDS.filter(c => c.occasion === group.key);
+    const cards = allCards.filter(c => c.occasion === group.key);
     if (cards.length === 0 && !isAdmin) return;
 
     const section = document.createElement('section');
     section.className = 'group';
-
     section.innerHTML = `
       <div class="group-header">
         <span class="group-icon">${group.icon}</span>
@@ -127,19 +142,15 @@ function renderGallery() {
         <span class="group-count">${cards.length} card${cards.length !== 1 ? 's' : ''}</span>
       </div>
       <div class="group-grid"></div>
-      ${cards.length === 0 ? '<p class="empty-group">No cards yet.</p>' : ''}
+      ${cards.length === 0 ? '<p class="empty-group">No cards yet — add one!</p>' : ''}
     `;
 
     const grid = section.querySelector('.group-grid');
-    const sorted = [...cards].sort((a, b) => b.year - a.year);
-
-    sorted.forEach((card, i) => {
-      const globalIndex = CARDS.indexOf(card);
+    [...cards].sort((a, b) => b.year - a.year).forEach(card => {
       const tile = document.createElement('div');
       tile.className = 'card';
-
-      const imgHtml = card.image
-        ? `<img class="card-img" src="${card.image}" alt="" loading="lazy" />`
+      const imgHtml = card.image_url
+        ? `<img class="card-img" src="${card.image_url}" alt="" loading="lazy" />`
         : `<div class="card-placeholder">
              <span class="card-placeholder-icon">${group.icon}</span>
              <div class="card-placeholder-lines">
@@ -148,17 +159,14 @@ function renderGallery() {
                <div class="card-placeholder-line"></div>
              </div>
            </div>`;
-
       tile.innerHTML = `
         ${imgHtml}
         <div class="card-body">
           ${isAdmin
             ? `<div class="card-year">${card.year}</div><div class="card-snippet">${card.message || ''}</div>`
-            : `<div class="card-cta">CLICK TO VIEW</div>`
-          }
+            : `<div class="card-cta">CLICK TO VIEW</div>`}
         </div>
       `;
-
       tile.addEventListener('click', () => showCardScreen(group.key));
       grid.appendChild(tile);
     });
@@ -168,135 +176,103 @@ function renderGallery() {
 }
 
 // ── Card view screen ──────────────────────────────────────────────────────────
-
 function renderCardScreen() {
   const group = GROUPS.find(g => g.key === currentOccasion);
-  const cards = CARDS
-    .map((c, i) => ({ ...c, _index: i }))
-    .filter(c => c.occasion === currentOccasion)
-    .sort((a, b) => b.year - a.year);
+  const cards = allCards.filter(c => c.occasion === currentOccasion).sort((a, b) => b.year - a.year);
 
   // Year bar
   const yearBar = document.getElementById('year-bar');
   yearBar.innerHTML = '';
-
   if (!currentYear || !cards.find(c => c.year === currentYear)) {
     currentYear = cards[0]?.year ?? null;
   }
-
   cards.forEach(card => {
     const pill = document.createElement('button');
     pill.className = 'year-pill' + (card.year === currentYear ? ' active' : '');
     pill.textContent = card.year;
-    pill.addEventListener('click', () => {
-      currentYear = card.year;
-      renderCardScreen();
-    });
+    pill.addEventListener('click', () => { currentYear = card.year; renderCardScreen(); });
     yearBar.appendChild(pill);
   });
 
   const selected = cards.find(c => c.year === currentYear);
   const content = document.querySelector('.card-view-content');
   content.innerHTML = '';
-
   if (!selected) return;
 
-  // Image (if any)
-  if (selected.image) {
+  if (selected.image_url) {
     const img = document.createElement('img');
     img.id = 'view-image';
-    img.src = selected.image;
+    img.src = selected.image_url;
     img.alt = '';
     content.appendChild(img);
   }
 
-  // Tap hint
   const hint = document.createElement('p');
   hint.className = 'card-tap-hint';
   hint.textContent = 'Tap the card to open it';
   content.appendChild(hint);
 
-  // 3D card
   const scene = document.createElement('div');
   scene.className = 'card-3d-scene';
-
   scene.innerHTML = `
     <div class="card-3d" id="card3d">
       <div class="card-face card-front">
         <div class="card-front-border"></div>
-        <div class="card-front-corner tl"></div>
-        <div class="card-front-corner tr"></div>
-        <div class="card-front-corner bl"></div>
-        <div class="card-front-corner br"></div>
+        <div class="card-front-corner tl"></div><div class="card-front-corner tr"></div>
+        <div class="card-front-corner bl"></div><div class="card-front-corner br"></div>
         <div class="card-front-icon">${group.icon}</div>
         <div class="card-front-occasion">${selected.occasion}</div>
         <div class="card-front-year">${selected.year}</div>
         <div class="card-front-tap">Tap to open</div>
       </div>
       <div class="card-face card-back">
-        <div class="card-back-lines">
-          ${Array(10).fill('<div class="card-back-line"></div>').join('')}
-        </div>
+        <div class="card-back-lines">${Array(10).fill('<div class="card-back-line"></div>').join('')}</div>
         <div class="card-back-top-ornament">— ✦ —</div>
         <div class="card-back-message">${selected.message || ''}</div>
         <div class="card-back-signature">With love ♥</div>
       </div>
     </div>
   `;
-
   scene.addEventListener('click', () => {
     const card3d = scene.querySelector('.card-3d');
     card3d.classList.toggle('open');
     hint.textContent = card3d.classList.contains('open') ? 'Tap to close' : 'Tap the card to open it';
   });
-
   content.appendChild(scene);
 
-  // Admin actions
-  const adminActions = document.getElementById('view-admin-actions');
-  adminActions.classList.toggle('hidden', !isAdmin);
   if (isAdmin) {
-    document.getElementById('view-edit-btn').onclick = () => openCardModal(selected);
-    document.getElementById('view-delete-btn').onclick = () => {
-      if (!confirm(`Delete this ${selected.occasion} card from ${selected.year}?`)) return;
-      CARDS.splice(selected._index, 1);
-      const remaining = CARDS.filter(c => c.occasion === currentOccasion);
-      if (remaining.length === 0) { showHomeScreen(); renderGallery(); }
-      else { currentYear = null; renderCardScreen(); renderGallery(); }
-    };
+    const adminActions = document.createElement('div');
+    adminActions.className = 'view-admin-actions';
+    adminActions.innerHTML = `
+      <button class="btn-secondary" id="view-edit-btn">Edit</button>
+      <button class="btn-danger" id="view-delete-btn">Delete</button>
+    `;
+    adminActions.querySelector('#view-edit-btn').onclick = () => openCardModal(selected);
+    adminActions.querySelector('#view-delete-btn').onclick = () => deleteCard(selected);
     content.appendChild(adminActions);
   }
 }
 
 // ── Add / Edit card modal ─────────────────────────────────────────────────────
-
 document.getElementById('add-card-btn').addEventListener('click', () => openCardModal(null));
 
 function openCardModal(card) {
-  editingIndex = card ? card._index : null;
+  editingId = card ? (card.id ?? card._index) : null;
   document.getElementById('card-modal-title').textContent = card ? 'Edit Card' : 'New Card';
   document.getElementById('card-occasion').value = card ? card.occasion : "Father's Day";
   document.getElementById('card-year').value = card ? card.year : new Date().getFullYear();
   document.getElementById('card-message').value = card ? card.message : '';
   document.getElementById('card-image').value = '';
   document.getElementById('card-error').classList.add('hidden');
-
-  const previewWrap = document.getElementById('card-image-preview-wrap');
-  if (card && card.image) {
-    document.getElementById('card-image-preview').src = card.image;
-    previewWrap.classList.remove('hidden');
-  } else {
-    previewWrap.classList.add('hidden');
-  }
-
+  const wrap = document.getElementById('card-image-preview-wrap');
+  if (card?.image_url) { document.getElementById('card-image-preview').src = card.image_url; wrap.classList.remove('hidden'); }
+  else wrap.classList.add('hidden');
   showModal('card-modal');
   setTimeout(() => document.getElementById('card-message').focus(), 50);
 }
 
 document.getElementById('card-cancel-btn').addEventListener('click', () => hideModal('card-modal'));
-document.getElementById('card-modal').addEventListener('click', e => {
-  if (e.target.id === 'card-modal') hideModal('card-modal');
-});
+document.getElementById('card-modal').addEventListener('click', e => { if (e.target.id === 'card-modal') hideModal('card-modal'); });
 
 document.getElementById('card-image').addEventListener('change', e => {
   const file = e.target.files[0];
@@ -316,57 +292,108 @@ document.getElementById('card-image-remove').addEventListener('click', () => {
 
 document.getElementById('card-save-btn').addEventListener('click', saveCard);
 
-function saveCard() {
+async function saveCard() {
   const occasion = document.getElementById('card-occasion').value;
-  const year = parseInt(document.getElementById('card-year').value, 10);
-  const message = document.getElementById('card-message').value.trim();
-  const errEl = document.getElementById('card-error');
-
+  const year     = parseInt(document.getElementById('card-year').value, 10);
+  const message  = document.getElementById('card-message').value.trim();
+  const errEl    = document.getElementById('card-error');
   if (!year || !message) {
     errEl.textContent = 'Please fill in the year and message.';
     errEl.classList.remove('hidden');
     return;
   }
 
-  const imagePreview = document.getElementById('card-image-preview').src;
-  const hasNewImage = document.getElementById('card-image').files[0];
-  const image = hasNewImage ? imagePreview : (editingIndex !== null ? CARDS[editingIndex].image : null);
+  const saveBtn = document.getElementById('card-save-btn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
 
-  const card = { occasion, year, message, image: hasNewImage ? imagePreview : image };
+  try {
+    let image_url  = null;
+    let image_path = null;
+    const imageFile = document.getElementById('card-image').files[0];
 
-  if (editingIndex !== null) {
-    CARDS[editingIndex] = card;
-  } else {
-    CARDS.push(card);
+    if (USING_SUPABASE && imageFile) {
+      const ext  = imageFile.name.split('.').pop();
+      const path = `${Date.now()}.${ext}`;
+      const { error: upErr } = await db.storage.from(BUCKET).upload(path, imageFile, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: urlData } = db.storage.from(BUCKET).getPublicUrl(path);
+      image_url  = urlData.publicUrl;
+      image_path = path;
+
+      // Remove old image if replacing
+      const old = allCards.find(c => (c.id ?? c._index) === editingId);
+      if (old?.image_path) await db.storage.from(BUCKET).remove([old.image_path]);
+    }
+
+    const payload = { occasion, year, message, image_url, image_path };
+
+    if (USING_SUPABASE) {
+      if (editingId !== null) {
+        const { error } = await db.from(TABLE).update(payload).eq('id', editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await db.from(TABLE).insert(payload);
+        if (error) throw error;
+      }
+      await loadCards();
+    } else {
+      // Fallback: session-only (no Supabase configured)
+      if (editingId !== null) {
+        const idx = allCards.findIndex((c, i) => (c.id ?? i) === editingId);
+        if (idx !== -1) allCards[idx] = { ...allCards[idx], ...payload };
+      } else {
+        allCards.push({ ...payload, _index: allCards.length });
+      }
+    }
+
+    hideModal('card-modal');
+    renderGallery();
+    if (currentOccasion) renderCardScreen();
+    if (!USING_SUPABASE) showNotice('Card saved this session only. Set up Supabase in config.js to make cards permanent.');
+  } catch (err) {
+    console.error(err);
+    errEl.textContent = 'Something went wrong. Check your Supabase config.';
+    errEl.classList.remove('hidden');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Card';
   }
+}
 
-  hideModal('card-modal');
+async function deleteCard(card) {
+  if (!confirm(`Delete this ${card.occasion} card from ${card.year}?`)) return;
+  if (USING_SUPABASE) {
+    if (card.image_path) await db.storage.from(BUCKET).remove([card.image_path]);
+    const { error } = await db.from(TABLE).delete().eq('id', card.id);
+    if (error) { alert('Failed to delete.'); return; }
+    await loadCards();
+  } else {
+    allCards = allCards.filter(c => c !== card);
+  }
+  const remaining = allCards.filter(c => c.occasion === currentOccasion);
+  if (remaining.length === 0) { showHomeScreen(); }
+  else { currentYear = null; renderCardScreen(); }
   renderGallery();
-  if (currentOccasion) renderCardScreen();
-  showNotice('Saved in this session. Update cards.js and push to make it permanent.');
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
 function showModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function hideModal(id) { document.getElementById(id).classList.add('hidden'); }
 
 function showNotice(msg) {
-  let notice = document.getElementById('notice');
-  if (!notice) {
-    notice = document.createElement('div');
-    notice.id = 'notice';
-    notice.style.cssText = `
-      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-      background:#1e2840; border:1px solid #c9a84c; color:#e8c96a;
-      padding:12px 24px; border-radius:8px; font-size:0.82rem;
-      font-family:-apple-system,sans-serif; z-index:999; letter-spacing:0.04em;
-      box-shadow:0 4px 20px rgba(0,0,0,0.5); max-width:90vw; text-align:center;
-    `;
-    document.body.appendChild(notice);
+  let n = document.getElementById('notice');
+  if (!n) {
+    n = document.createElement('div');
+    n.id = 'notice';
+    n.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+      background:#1e2840;border:1px solid #c9a84c;color:#e8c96a;padding:12px 24px;
+      border-radius:8px;font-size:0.82rem;font-family:-apple-system,sans-serif;z-index:999;
+      letter-spacing:0.04em;box-shadow:0 4px 20px rgba(0,0,0,0.5);max-width:90vw;text-align:center;`;
+    document.body.appendChild(n);
   }
-  notice.textContent = msg;
-  notice.style.display = 'block';
-  clearTimeout(notice._t);
-  notice._t = setTimeout(() => { notice.style.display = 'none'; }, 5000);
+  n.textContent = msg;
+  n.style.display = 'block';
+  clearTimeout(n._t);
+  n._t = setTimeout(() => { n.style.display = 'none'; }, 6000);
 }
