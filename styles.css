@@ -1,0 +1,521 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --navy: #111827;
+  --surface: #161d2b;
+  --surface2: #1e2840;
+  --border: #2a3550;
+  --gold: #c9a84c;
+  --gold-light: #e8c96a;
+  --gold-dim: rgba(201,168,76,0.15);
+  --text: #eef0f5;
+  --text-muted: #7a8ba6;
+  --danger: #c0392b;
+  --radius: 14px;
+  --shadow: 0 8px 40px rgba(0,0,0,0.6);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  min-height: 100vh;
+}
+
+/* ── Lock screen ─────────────────────────────────────────────────────────── */
+#lock-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 60%),
+    linear-gradient(180deg, #0d1117 0%, #111827 100%);
+}
+
+.lock-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 56px 48px;
+  width: min(400px, 90vw);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.lock-icon {
+  font-size: 44px;
+  margin-bottom: 20px;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(201,168,76,0.4));
+}
+
+.lock-box h1 {
+  font-size: 2rem;
+  font-weight: normal;
+  letter-spacing: 0.06em;
+  color: var(--gold-light);
+  margin-bottom: 6px;
+}
+
+.lock-box .subtitle {
+  color: var(--text-muted);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.9rem;
+  margin-bottom: 32px;
+  font-style: italic;
+}
+
+.lock-box input[type="password"] {
+  width: 100%;
+  padding: 13px 18px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 1rem;
+  margin-bottom: 12px;
+  outline: none;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: border-color 0.2s;
+  text-align: center;
+  letter-spacing: 0.2em;
+}
+.lock-box input[type="password"]:focus { border-color: var(--gold); }
+
+.lock-box button {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--gold) 0%, #a8772a 100%);
+  color: #0d1117;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: opacity 0.15s;
+}
+.lock-box button:hover { opacity: 0.88; }
+
+.lock-error {
+  color: #e05555;
+  font-size: 0.85rem;
+  margin-top: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-title {
+  font-size: 1.35rem;
+  font-weight: normal;
+  letter-spacing: 0.1em;
+  color: var(--gold-light);
+}
+
+.site-title span {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  display: block;
+  margin-top: 2px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+.header-actions button {
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.15s;
+}
+.header-actions button:hover { color: var(--text); border-color: var(--gold); }
+
+#add-card-btn {
+  background: var(--gold-dim);
+  color: var(--gold-light) !important;
+  border-color: var(--gold) !important;
+}
+#add-card-btn:hover { background: rgba(201,168,76,0.25) !important; }
+
+#lock-btn { font-size: 1rem; padding: 8px 10px; }
+
+/* ── Groups ──────────────────────────────────────────────────────────────── */
+main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
+}
+
+.group { margin-bottom: 64px; }
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.group-icon { font-size: 1.6rem; }
+
+.group-title {
+  font-size: 1.3rem;
+  font-weight: normal;
+  letter-spacing: 0.08em;
+  color: var(--gold-light);
+}
+
+.group-count {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  margin-left: auto;
+}
+
+.group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+/* ── Card tile ───────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s, box-shadow 0.18s;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold);
+  box-shadow: 0 12px 36px rgba(201,168,76,0.12);
+}
+
+.card-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  display: block;
+}
+
+.card-placeholder {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-placeholder-icon { font-size: 2.4rem; opacity: 0.6; }
+
+.card-placeholder-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 60%;
+  align-items: center;
+}
+.card-placeholder-line {
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  width: 100%;
+}
+.card-placeholder-line:nth-child(2) { width: 75%; }
+.card-placeholder-line:nth-child(3) { width: 55%; }
+
+.card-body { padding: 14px 16px 16px; }
+
+.card-year {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 5px;
+}
+
+.card-snippet {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-style: italic;
+}
+
+.empty-group {
+  color: var(--text-muted);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.88rem;
+  font-style: italic;
+  padding: 24px 0;
+}
+
+#empty-msg {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 80px 0;
+  font-size: 1rem;
+  font-style: italic;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Modals ──────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 36px 32px;
+  width: min(460px, 100%);
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.modal h2 {
+  font-size: 1.3rem;
+  font-weight: normal;
+  letter-spacing: 0.06em;
+  color: var(--gold-light);
+  margin-bottom: 6px;
+}
+
+.modal > p {
+  color: var(--text-muted);
+  margin-bottom: 22px;
+  font-size: 0.88rem;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.modal input, .modal select, .modal textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+  padding: 11px 15px;
+  outline: none;
+  width: 100%;
+  font-family: Georgia, serif;
+  transition: border-color 0.2s;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.modal input:focus, .modal select:focus, .modal textarea:focus {
+  border-color: var(--gold);
+}
+.modal textarea { resize: vertical; line-height: 1.6; }
+.modal select { cursor: pointer; }
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.btn-primary {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, var(--gold) 0%, #a8772a 100%);
+  color: #0d1117;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.88; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { color: var(--text); border-color: var(--text-muted); }
+
+.btn-danger {
+  padding: 10px 20px;
+  background: transparent;
+  color: #e05555;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  border: 1px solid #6b2222;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.15s;
+}
+.btn-danger:hover { background: rgba(192,57,43,0.12); }
+
+.btn-small { font-size: 0.78rem; padding: 5px 12px; margin-top: 8px; }
+
+.lock-error, .modal-error {
+  color: #e05555;
+  font-size: 0.82rem;
+  margin-top: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ── Card modal image ────────────────────────────────────────────────────── */
+.card-modal { width: min(560px, 100%); }
+#card-image-preview-wrap { margin-top: 6px; }
+#card-image-preview {
+  width: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+  max-height: 180px;
+  border: 1px solid var(--border);
+}
+
+/* ── View modal ──────────────────────────────────────────────────────────── */
+.view-modal {
+  width: min(700px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 48px 44px 36px;
+}
+
+.view-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: color 0.15s, border-color 0.15s;
+}
+.view-close:hover { color: var(--text); border-color: var(--text-muted); }
+
+.view-occasion-year {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 20px;
+}
+
+#view-image {
+  width: 100%;
+  border-radius: 10px;
+  object-fit: contain;
+  max-height: 400px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+
+.view-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--gold);
+  margin: 20px 0;
+  opacity: 0.5;
+}
+
+.view-message {
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--text);
+  white-space: pre-wrap;
+  font-style: italic;
+}
+
+.view-admin-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Admin modal password ────────────────────────────────────────────────── */
+#admin-password-input { text-align: center; letter-spacing: 0.2em; }
+
+.hidden { display: none !important; }

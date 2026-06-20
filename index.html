@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dad's Cards</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Lock screen -->
+  <div id="lock-screen">
+    <div class="lock-box">
+      <span class="lock-icon">✉️</span>
+      <h1>For Dad</h1>
+      <p class="subtitle">A collection of cards, just for you</p>
+      <input type="password" id="password-input" placeholder="••••••••" autocomplete="current-password" />
+      <button id="unlock-btn">Open</button>
+      <p class="lock-error hidden" id="lock-error">Wrong password — try again</p>
+    </div>
+  </div>
+
+  <!-- Main app -->
+  <div id="app" class="hidden">
+    <header>
+      <div class="header-inner">
+        <h1 class="site-title">
+          For Dad
+          <span>A card collection</span>
+        </h1>
+        <div class="header-actions">
+          <button id="add-card-btn" class="hidden">+ Add Card</button>
+          <button id="admin-btn">Admin</button>
+          <button id="lock-btn">🔒</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Admin password modal -->
+    <div id="admin-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <h2>Admin Access</h2>
+        <p>Enter the admin password to add or edit cards</p>
+        <input type="password" id="admin-password-input" placeholder="••••••••" />
+        <div class="modal-actions">
+          <button id="admin-cancel-btn" class="btn-secondary">Cancel</button>
+          <button id="admin-confirm-btn" class="btn-primary">Confirm</button>
+        </div>
+        <p class="modal-error hidden" id="admin-error">Wrong password</p>
+      </div>
+    </div>
+
+    <!-- Add / Edit card modal -->
+    <div id="card-modal" class="modal-overlay hidden">
+      <div class="modal card-modal">
+        <h2 id="card-modal-title">New Card</h2>
+        <p id="card-modal-subtitle">Fill in the details below</p>
+        <label>Occasion
+          <select id="card-occasion">
+            <option value="Father's Day">Father's Day</option>
+            <option value="Birthday">Birthday</option>
+            <option value="Christmas">Christmas</option>
+            <option value="Other">Other</option>
+          </select>
+        </label>
+        <label>Year
+          <input type="number" id="card-year" min="1900" max="2100" />
+        </label>
+        <label>Message
+          <textarea id="card-message" rows="6" placeholder="Write the card message here…"></textarea>
+        </label>
+        <label>Image (optional)
+          <input type="file" id="card-image" accept="image/*" />
+        </label>
+        <div id="card-image-preview-wrap" class="hidden">
+          <img id="card-image-preview" src="" alt="Preview" />
+          <button id="card-image-remove" class="btn-small btn-secondary">Remove image</button>
+        </div>
+        <div class="modal-actions">
+          <button id="card-cancel-btn" class="btn-secondary">Cancel</button>
+          <button id="card-save-btn" class="btn-primary">Save Card</button>
+        </div>
+        <p class="modal-error hidden" id="card-error">Something went wrong. Try again.</p>
+      </div>
+    </div>
+
+    <!-- Gallery grouped by occasion -->
+    <main id="main-content">
+      <p id="empty-msg" class="hidden">No cards yet — add the first one!</p>
+    </main>
+
+    <!-- Card view modal -->
+    <div id="view-modal" class="modal-overlay hidden">
+      <div class="modal view-modal">
+        <button id="view-close-btn" class="view-close">✕</button>
+        <div class="view-occasion-year">
+          <span id="view-occasion"></span> &nbsp;·&nbsp; <span id="view-year"></span>
+        </div>
+        <img id="view-image" src="" alt="" class="hidden" />
+        <div class="view-divider"></div>
+        <div id="view-message" class="view-message"></div>
+        <div id="view-admin-actions" class="hidden view-admin-actions">
+          <button id="view-edit-btn" class="btn-secondary">Edit</button>
+          <button id="view-delete-btn" class="btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="cards.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
