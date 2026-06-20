@@ -311,7 +311,7 @@ async function generateDesign() {
       body: JSON.stringify({ prompt, occasion, year }),
     });
     const data = await res.json();
-    if (!res.ok || !data.svg) throw new Error(data.error || 'No SVG returned');
+    if (!res.ok || !data.svg) throw new Error((data.detail ? data.detail : data.error) || 'No SVG returned');
 
     pendingSvg = data.svg;
     document.getElementById('design-svg-preview').innerHTML = data.svg;
