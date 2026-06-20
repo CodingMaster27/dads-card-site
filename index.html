@@ -24,10 +24,13 @@
   <div id="app" class="hidden">
     <header>
       <div class="header-inner">
-        <h1 class="site-title">
-          For Dad
-          <span>A card collection</span>
-        </h1>
+        <div class="header-left">
+          <button id="back-btn" class="back-btn hidden">← Back</button>
+          <h1 class="site-title" id="site-title">
+            For Dad
+            <span>A card collection</span>
+          </h1>
+        </div>
         <div class="header-actions">
           <button id="add-card-btn" class="hidden">+ Add Card</button>
           <button id="admin-btn">Admin</button>
@@ -84,21 +87,19 @@
       </div>
     </div>
 
-    <!-- Gallery grouped by occasion -->
-    <main>
+    <!-- Home screen: gallery grouped by occasion -->
+    <div id="home-screen">
       <div id="main-content"></div>
       <p id="empty-msg" class="hidden">No cards yet — add the first one!</p>
-    </main>
+    </div>
 
-    <!-- Card view modal -->
-    <div id="view-modal" class="modal-overlay hidden">
-      <div class="modal view-modal">
-        <button id="view-close-btn" class="view-close">✕</button>
-        <div class="view-occasion-year">
-          <span id="view-occasion"></span> &nbsp;·&nbsp; <span id="view-year"></span>
-        </div>
+    <!-- Card view screen -->
+    <div id="card-screen" class="hidden">
+      <div class="year-bar-wrap">
+        <div class="year-bar" id="year-bar"></div>
+      </div>
+      <div class="card-view-content">
         <img id="view-image" src="" alt="" class="hidden" />
-        <div class="view-divider"></div>
         <div id="view-message" class="view-message"></div>
         <div id="view-admin-actions" class="hidden view-admin-actions">
           <button id="view-edit-btn" class="btn-secondary">Edit</button>

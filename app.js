@@ -1,6 +1,7 @@
 let isAdmin = false;
-let viewingCard = null;
 let editingIndex = null;
+let currentOccasion = null;
+let currentYear = null;
 
 const GROUPS = [
   { key: "Father's Day", icon: '👔', label: "Father's Day" },
@@ -36,10 +37,12 @@ document.getElementById('lock-btn').addEventListener('click', () => {
   isAdmin = false;
   document.getElementById('add-card-btn').classList.add('hidden');
   document.getElementById('admin-btn').textContent = 'Admin';
+  document.getElementById('admin-btn').classList.remove('hidden');
   document.getElementById('app').classList.add('hidden');
   document.getElementById('lock-screen').classList.remove('hidden');
   document.getElementById('password-input').value = '';
   document.getElementById('lock-error').classList.add('hidden');
+  showHomeScreen();
 });
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
@@ -51,7 +54,6 @@ document.getElementById('admin-btn').addEventListener('click', () => {
 });
 
 document.getElementById('admin-cancel-btn').addEventListener('click', () => hideModal('admin-modal'));
-
 document.getElementById('admin-password-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') confirmAdmin();
 });
@@ -80,12 +82,31 @@ function deactivateAdmin() {
   renderGallery();
 }
 
+// ── Screen navigation ─────────────────────────────────────────────────────────
+
+function showHomeScreen() {
+  document.getElementById('home-screen').classList.remove('hidden');
+  document.getElementById('card-screen').classList.add('hidden');
+  document.getElementById('back-btn').classList.add('hidden');
+  currentOccasion = null;
+  currentYear = null;
+}
+
+function showCardScreen(occasion) {
+  currentOccasion = occasion;
+  document.getElementById('home-screen').classList.add('hidden');
+  document.getElementById('card-screen').classList.remove('hidden');
+  document.getElementById('back-btn').classList.remove('hidden');
+  renderCardScreen();
+}
+
+document.getElementById('back-btn').addEventListener('click', showHomeScreen);
+
 // ── Gallery ───────────────────────────────────────────────────────────────────
 
 function renderGallery() {
   const main = document.getElementById('main-content');
   const emptyMsg = document.getElementById('empty-msg');
-
   main.innerHTML = '';
 
   const hasAny = CARDS.length > 0;
@@ -93,31 +114,30 @@ function renderGallery() {
   if (!hasAny) return;
 
   GROUPS.forEach(group => {
-    const cards = CARDS
-      .map((c, i) => ({ ...c, _index: i }))
-      .filter(c => c.occasion === group.key)
-      .sort((a, b) => b.year - a.year);
-
+    const cards = CARDS.filter(c => c.occasion === group.key);
     if (cards.length === 0 && !isAdmin) return;
 
     const section = document.createElement('section');
     section.className = 'group';
 
-    const count = cards.length;
     section.innerHTML = `
       <div class="group-header">
         <span class="group-icon">${group.icon}</span>
         <h2 class="group-title">${group.label}</h2>
-        <span class="group-count">${count} card${count !== 1 ? 's' : ''}</span>
+        <span class="group-count">${cards.length} card${cards.length !== 1 ? 's' : ''}</span>
       </div>
       <div class="group-grid"></div>
-      ${cards.length === 0 ? '<p class="empty-group">No cards yet in this category.</p>' : ''}
+      ${cards.length === 0 ? '<p class="empty-group">No cards yet.</p>' : ''}
     `;
 
     const grid = section.querySelector('.group-grid');
-    cards.forEach(card => {
+    const sorted = [...cards].sort((a, b) => b.year - a.year);
+
+    sorted.forEach((card, i) => {
+      const globalIndex = CARDS.indexOf(card);
       const tile = document.createElement('div');
       tile.className = 'card';
+
       const imgHtml = card.image
         ? `<img class="card-img" src="${card.image}" alt="" loading="lazy" />`
         : `<div class="card-placeholder">
@@ -128,6 +148,7 @@ function renderGallery() {
                <div class="card-placeholder-line"></div>
              </div>
            </div>`;
+
       tile.innerHTML = `
         ${imgHtml}
         <div class="card-body">
@@ -137,7 +158,8 @@ function renderGallery() {
           }
         </div>
       `;
-      tile.addEventListener('click', () => openViewModal(card));
+
+      tile.addEventListener('click', () => showCardScreen(group.key));
       grid.appendChild(tile);
     });
 
@@ -145,40 +167,71 @@ function renderGallery() {
   });
 }
 
-// ── View modal ────────────────────────────────────────────────────────────────
+// ── Card view screen ──────────────────────────────────────────────────────────
 
-function openViewModal(card) {
-  viewingCard = card;
-  document.getElementById('view-occasion').textContent = card.occasion;
-  document.getElementById('view-year').textContent = card.year;
-  document.getElementById('view-message').textContent = card.message || '';
+function renderCardScreen() {
+  const group = GROUPS.find(g => g.key === currentOccasion);
+  const cards = CARDS
+    .map((c, i) => ({ ...c, _index: i }))
+    .filter(c => c.occasion === currentOccasion)
+    .sort((a, b) => b.year - a.year);
 
+  // Build year bar
+  const yearBar = document.getElementById('year-bar');
+  yearBar.innerHTML = '';
+
+  if (!currentYear || !cards.find(c => c.year === currentYear)) {
+    currentYear = cards[0]?.year ?? null;
+  }
+
+  cards.forEach(card => {
+    const pill = document.createElement('button');
+    pill.className = 'year-pill' + (card.year === currentYear ? ' active' : '');
+    pill.textContent = card.year;
+    pill.addEventListener('click', () => {
+      currentYear = card.year;
+      renderCardScreen();
+    });
+    yearBar.appendChild(pill);
+  });
+
+  // Show selected card
+  const selected = cards.find(c => c.year === currentYear);
   const img = document.getElementById('view-image');
-  if (card.image) { img.src = card.image; img.classList.remove('hidden'); }
-  else img.classList.add('hidden');
+  const msg = document.getElementById('view-message');
+  const adminActions = document.getElementById('view-admin-actions');
 
-  document.getElementById('view-admin-actions').classList.toggle('hidden', !isAdmin);
-  showModal('view-modal');
+  if (selected) {
+    if (selected.image) {
+      img.src = selected.image;
+      img.classList.remove('hidden');
+    } else {
+      img.classList.add('hidden');
+    }
+    msg.textContent = selected.message || '';
+    adminActions.classList.toggle('hidden', !isAdmin);
+
+    // Wire up edit/delete
+    document.getElementById('view-edit-btn').onclick = () => openCardModal(selected);
+    document.getElementById('view-delete-btn').onclick = () => {
+      if (!confirm(`Delete this ${selected.occasion} card from ${selected.year}?`)) return;
+      CARDS.splice(selected._index, 1);
+      const remaining = CARDS.filter(c => c.occasion === currentOccasion);
+      if (remaining.length === 0) {
+        showHomeScreen();
+        renderGallery();
+      } else {
+        currentYear = null;
+        renderCardScreen();
+        renderGallery();
+      }
+    };
+  } else {
+    img.classList.add('hidden');
+    msg.textContent = '';
+    adminActions.classList.add('hidden');
+  }
 }
-
-document.getElementById('view-close-btn').addEventListener('click', () => hideModal('view-modal'));
-document.getElementById('view-modal').addEventListener('click', e => {
-  if (e.target.id === 'view-modal') hideModal('view-modal');
-});
-
-document.getElementById('view-edit-btn').addEventListener('click', () => {
-  hideModal('view-modal');
-  openCardModal(viewingCard);
-});
-
-document.getElementById('view-delete-btn').addEventListener('click', () => {
-  if (!viewingCard) return;
-  if (!confirm(`Delete this ${viewingCard.occasion} card from ${viewingCard.year}?`)) return;
-  CARDS.splice(viewingCard._index, 1);
-  hideModal('view-modal');
-  renderGallery();
-  showNotice('Card deleted. Remember to save cards.js to make this permanent.');
-});
 
 // ── Add / Edit card modal ─────────────────────────────────────────────────────
 
@@ -244,17 +297,18 @@ function saveCard() {
   const hasNewImage = document.getElementById('card-image').files[0];
   const image = hasNewImage ? imagePreview : (editingIndex !== null ? CARDS[editingIndex].image : null);
 
-  const card = { occasion, year, message, image: hasNewImage ? null : image };
+  const card = { occasion, year, message, image: hasNewImage ? imagePreview : image };
 
   if (editingIndex !== null) {
-    CARDS[editingIndex] = { ...card };
+    CARDS[editingIndex] = card;
   } else {
     CARDS.push(card);
   }
 
   hideModal('card-modal');
   renderGallery();
-  showNotice('Card saved in this session. To make it permanent, update cards.js and redeploy.');
+  if (currentOccasion) renderCardScreen();
+  showNotice('Saved in this session. Update cards.js and push to make it permanent.');
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

@@ -464,64 +464,90 @@ main {
   border: 1px solid var(--border);
 }
 
-/* ── View modal ──────────────────────────────────────────────────────────── */
-.view-modal {
-  width: min(700px, 100%);
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 48px 44px 36px;
-}
-
-.view-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  font-size: 0.8rem;
-  cursor: pointer;
+/* ── Back button ─────────────────────────────────────────────────────────── */
+.header-left {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  transition: color 0.15s, border-color 0.15s;
+  gap: 16px;
 }
-.view-close:hover { color: var(--text); border-color: var(--text-muted); }
 
-.view-occasion-year {
+.back-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 20px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.back-btn:hover { color: var(--text); border-color: var(--gold); }
+
+/* ── Card view screen ────────────────────────────────────────────────────── */
+#card-screen {
+  min-height: calc(100vh - 65px);
+}
+
+.year-bar-wrap {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.year-bar {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.year-bar::-webkit-scrollbar { display: none; }
+
+.year-pill {
+  flex-shrink: 0;
+  padding: 14px 22px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  margin-bottom: -1px;
+}
+.year-pill:hover { color: var(--text); }
+.year-pill.active {
+  color: var(--gold-light);
+  border-bottom-color: var(--gold);
+  font-weight: 600;
+}
+
+.card-view-content {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 52px 32px 80px;
 }
 
 #view-image {
   width: 100%;
   border-radius: 10px;
   object-fit: contain;
-  max-height: 400px;
-  margin-bottom: 24px;
+  max-height: 420px;
+  margin-bottom: 36px;
   border: 1px solid var(--border);
 }
 
-.view-divider {
-  width: 40px;
-  height: 1px;
-  background: var(--gold);
-  margin: 20px 0;
-  opacity: 0.5;
-}
-
 .view-message {
-  font-size: 1.05rem;
-  line-height: 1.85;
+  font-size: 1.15rem;
+  line-height: 1.9;
   color: var(--text);
   white-space: pre-wrap;
   font-style: italic;
@@ -530,8 +556,8 @@ main {
 .view-admin-actions {
   display: flex;
   gap: 10px;
-  margin-top: 28px;
-  padding-top: 22px;
+  margin-top: 40px;
+  padding-top: 24px;
   border-top: 1px solid var(--border);
 }
 
