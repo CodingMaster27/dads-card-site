@@ -75,16 +75,17 @@
         </label>
         <div class="design-section">
           <div class="design-label">Card Design <span class="design-badge">AI</span></div>
-          <p class="design-hint">Describe the art you want on the front cover and Claude will illustrate it.</p>
-          <textarea id="card-design-prompt" rows="3" placeholder="e.g. A golden sunset over the ocean with silhouettes of palm trees and a warm glow…"></textarea>
-          <button id="generate-design-btn" class="btn-generate">✦ Generate Card Design</button>
+          <div id="design-chat-log" class="design-chat-log hidden"></div>
           <div id="design-preview-wrap" class="hidden design-preview-wrap">
             <div id="design-svg-preview" class="design-svg-preview"></div>
-            <button id="regenerate-btn" class="btn-small btn-secondary">↺ Regenerate</button>
           </div>
           <div id="design-loading" class="hidden design-loading">
             <div class="design-spinner"></div>
             <span>Claude is illustrating your card…</span>
+          </div>
+          <div class="design-chat-input-row">
+            <textarea id="card-design-prompt" rows="2" placeholder="Describe the art you want — e.g. a golden sunset over the ocean…"></textarea>
+            <button id="generate-design-btn" class="btn-generate">✦ Send</button>
           </div>
         </div>
         <div class="modal-actions">

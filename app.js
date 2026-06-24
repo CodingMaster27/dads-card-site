@@ -270,11 +270,9 @@ function openCardModal(card) {
   document.getElementById('card-occasion').value = card ? card.occasion : "Father's Day";
   document.getElementById('card-year').value = card ? card.year : new Date().getFullYear();
   document.getElementById('card-message').value = card ? card.message : '';
-  document.getElementById('card-design-prompt').value = '';
   document.getElementById('card-error').classList.add('hidden');
-  document.getElementById('design-preview-wrap').classList.add('hidden');
   document.getElementById('design-loading').classList.add('hidden');
-  document.getElementById('design-svg-preview').innerHTML = '';
+  resetDesignChat();
 
   // If editing a card that already has a generated SVG, show it
   if (card?.card_svg) {
@@ -287,48 +285,82 @@ function openCardModal(card) {
   setTimeout(() => document.getElementById('card-message').focus(), 50);
 }
 
-// ── AI card generation ────────────────────────────────────────────────────────
+// ── AI card generation (chat) ─────────────────────────────────────────────────
+let designChatHistory = [];
+
+function resetDesignChat() {
+  designChatHistory = [];
+  const log = document.getElementById('design-chat-log');
+  log.innerHTML = '';
+  log.classList.add('hidden');
+  document.getElementById('design-preview-wrap').classList.add('hidden');
+  document.getElementById('design-svg-preview').innerHTML = '';
+}
+
+function appendChatMessage(role, text) {
+  const log = document.getElementById('design-chat-log');
+  log.classList.remove('hidden');
+  const el = document.createElement('div');
+  el.className = 'chat-msg chat-msg--' + role;
+  el.textContent = text;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
 async function generateDesign() {
-  const prompt   = document.getElementById('card-design-prompt').value.trim();
+  const promptEl = document.getElementById('card-design-prompt');
+  const prompt   = promptEl.value.trim();
   const occasion = document.getElementById('card-occasion').value;
   const year     = document.getElementById('card-year').value;
-  if (!prompt) { showNotice('Enter a design description first.'); return; }
+  if (!prompt) { showNotice('Describe the design first.'); return; }
 
   const genBtn  = document.getElementById('generate-design-btn');
-  const regenBtn = document.getElementById('regenerate-btn');
   const loading = document.getElementById('design-loading');
   const preview = document.getElementById('design-preview-wrap');
 
-  genBtn.disabled  = true;
-  if (regenBtn) regenBtn.disabled = true;
+  appendChatMessage('user', prompt);
+  promptEl.value = '';
+  genBtn.disabled = true;
   loading.classList.remove('hidden');
   preview.classList.add('hidden');
+
+  // Build messages: if we have a previous SVG, include it as context
+  if (pendingSvg && designChatHistory.length > 0) {
+    designChatHistory.push({
+      role: 'user',
+      content: `Here is the current SVG design:\n${pendingSvg}\n\nNow please refine it based on this feedback: ${prompt}`
+    });
+  } else {
+    designChatHistory.push({ role: 'user', content: prompt });
+  }
 
   try {
     const res  = await fetch('/api/generate-card', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ prompt, occasion, year }),
+      body: JSON.stringify({ messages: designChatHistory, occasion, year }),
     });
     const data = await res.json();
     if (!res.ok || !data.svg) throw new Error((data.detail ? data.detail : data.error) || 'No SVG returned');
 
+    designChatHistory.push({ role: 'assistant', content: data.svg });
     pendingSvg = data.svg;
     document.getElementById('design-svg-preview').innerHTML = data.svg;
     preview.classList.remove('hidden');
+    appendChatMessage('assistant', '✦ Design updated — describe any changes or save the card.');
   } catch (err) {
     console.error(err);
-    showNotice('Generation failed: ' + err.message);
+    designChatHistory.pop();
+    appendChatMessage('assistant', 'Generation failed: ' + err.message);
   } finally {
     genBtn.disabled = false;
-    if (regenBtn) regenBtn.disabled = false;
     loading.classList.add('hidden');
   }
 }
 
 document.getElementById('generate-design-btn').addEventListener('click', generateDesign);
-document.addEventListener('click', e => {
-  if (e.target.id === 'regenerate-btn') generateDesign();
+document.getElementById('card-design-prompt').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); generateDesign(); }
 });
 
 document.getElementById('card-cancel-btn').addEventListener('click', () => hideModal('card-modal'));

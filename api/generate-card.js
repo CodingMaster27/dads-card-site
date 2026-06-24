@@ -3,8 +3,8 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { prompt, occasion, year } = req.body;
-  if (!prompt) return res.status(400).json({ error: 'prompt is required' });
+  const { messages, occasion, year } = req.body;
+  if (!messages || !messages.length) return res.status(400).json({ error: 'messages required' });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
@@ -14,18 +14,13 @@ module.exports = async function handler(req, res) {
 Rules:
 - Output ONLY the raw SVG code, nothing else — no markdown, no explanation, no code fences
 - viewBox="0 0 360 480" exactly
-- Rich, detailed, hyperrealistic-style illustration using gradients, shadows, and depth
+- Rich, detailed illustration using gradients, shadows, and depth
 - Dark, classy, elegant aesthetic: deep navy/midnight blues, jewel tones, gold accents
-- Fill the entire card with art — no white space, no borders
+- Fill the entire card with art — no white space
 - Include decorative gold ornamental elements (flourishes, lines, stars)
-- Text on the card front should only be the occasion name in elegant serif lettering and the year, styled beautifully into the design
-- Make it feel like a luxury premium card worth keeping forever`;
-
-  const userPrompt = `Create the front cover for a ${occasion} card (${year}).
-
-Art direction from the sender: "${prompt}"
-
-Generate a stunning, detailed SVG illustration that captures this vision. Make it feel personal, emotional, and beautiful.`;
+- Text on the card front: only the occasion name in elegant serif lettering and the year
+- Make it feel like a luxury premium card worth keeping forever
+- This is a ${occasion} card for the year ${year}`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -37,9 +32,9 @@ Generate a stunning, detailed SVG illustration that captures this vision. Make i
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 8000,
+        max_tokens: 4000,
         system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
+        messages,
       }),
     });
 
