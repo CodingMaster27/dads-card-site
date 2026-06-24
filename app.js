@@ -231,7 +231,7 @@ function renderCardScreen() {
 
   scene.innerHTML = `
     <div class="card-3d" id="card3d">
-      <div class="card-face card-front" id="view-card-front" title="Click to enlarge">${frontContent}</div>
+      <div class="card-face card-front ${selected.card_svg ? 'card-front--svg' : ''}" id="view-card-front" title="Click to enlarge">${frontContent}</div>
       <div class="card-face card-back">
         <div class="card-back-lines">${Array(10).fill('<div class="card-back-line"></div>').join('')}</div>
         <div class="card-back-top-ornament">— ✦ —</div>
