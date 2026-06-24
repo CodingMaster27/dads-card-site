@@ -883,6 +883,7 @@ main {
   transition: transform 0.75s ease-in-out;
   transform-origin: center center;
   box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+  min-height: min(480px, 117vw);
 }
 
 .card-3d.open {
