@@ -7,11 +7,4 @@
 // To add a new card: copy one of the examples below, fill in the details,
 // save this file, commit, and push — Vercel will auto-deploy.
 
-const CARDS = [
-  {
-    occasion: "Father's Day",
-    year: 2026,
-    message: "Happy Father's Day, Dad! Thank you for everything you do. We love you so much.",
-    image: null,
-  },
-];
+const CARDS = [];

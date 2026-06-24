@@ -34,7 +34,6 @@ async function tryUnlock() {
     return;
   }
   document.getElementById('lock-screen').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
 
   if (val === ADMIN_PASSWORD) {
     activateAdmin();
@@ -47,6 +46,7 @@ async function tryUnlock() {
 
   await loadCards();
   renderGallery();
+  document.getElementById('app').classList.remove('hidden');
 }
 
 document.getElementById('lock-btn').addEventListener('click', () => {
