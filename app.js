@@ -220,8 +220,11 @@ function renderCardScreen() {
 
   const scene = document.createElement('div');
   scene.className = 'card-3d-scene';
+  const W = Math.min(360, window.innerWidth * 0.88);
+  const H = W * (480 / 360);
+  scene.style.cssText = `perspective:1400px;width:${W}px;height:${H}px;margin-bottom:36px;cursor:pointer;position:relative;`;
   const frontContent = selected.card_svg
-    ? `<div class="card-front-svg">${selected.card_svg}</div>`
+    ? `<div class="card-front-svg" style="position:absolute;inset:0;z-index:1;">${selected.card_svg}</div>`
     : `<div class="card-front-border"></div>
        <div class="card-front-corner tl"></div><div class="card-front-corner tr"></div>
        <div class="card-front-corner bl"></div><div class="card-front-corner br"></div>
@@ -230,8 +233,8 @@ function renderCardScreen() {
        <div class="card-front-year">${selected.year}</div>`;
 
   scene.innerHTML = `
-    <div class="card-3d" id="card3d">
-      <div class="card-face card-front ${selected.card_svg ? 'card-front--svg' : ''}" id="view-card-front" title="Click to enlarge">${frontContent}</div>
+    <div class="card-3d" id="card3d" style="width:${W}px;height:${H}px;position:relative;transform-style:preserve-3d;transition:transform 0.75s ease-in-out;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+      <div class="card-face card-front ${selected.card_svg ? 'card-front--svg' : ''}" id="view-card-front" title="Click to enlarge" style="position:absolute;inset:0;overflow:hidden;border-radius:6px 14px 14px 6px;backface-visibility:hidden;-webkit-backface-visibility:hidden;${selected.card_svg ? 'background:none;' : ''}">${frontContent}</div>
       <div class="card-face card-back">
         <div class="card-back-lines">${Array(10).fill('<div class="card-back-line"></div>').join('')}</div>
         <div class="card-back-top-ornament">— ✦ —</div>
