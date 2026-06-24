@@ -158,7 +158,7 @@ function renderGallery() {
       const imgHtml = card.image_url
         ? `<img class="card-img" src="${card.image_url}" alt="" loading="lazy" />`
         : card.card_svg
-        ? `<div class="card-img card-tile-svg">${card.card_svg}</div>`
+        ? `<div class="card-img card-tile-svg" style="overflow:hidden;display:block;aspect-ratio:3/4;">${card.card_svg}</div>`
         : `<div class="card-placeholder">
              <span class="card-placeholder-icon">${group.icon}</span>
              <div class="card-placeholder-lines">
@@ -245,10 +245,11 @@ function renderCardScreen() {
       </div>
     </div>
   `;
-  scene.addEventListener('click', () => {
+  scene.addEventListener('click', e => {
+    if (e.target.closest('#view-card-back')) return;
     const card3d = scene.querySelector('.card-3d');
     card3d.classList.toggle('open');
-    hint.textContent = card3d.classList.contains('open') ? 'Tap to close' : 'Tap the card to open it';
+    hint.textContent = card3d.classList.contains('open') ? 'Tap card to close • Tap message to enlarge' : 'Tap the card to open it';
   });
   content.appendChild(scene);
 
