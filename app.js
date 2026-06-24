@@ -231,7 +231,7 @@ function renderCardScreen() {
 
   scene.innerHTML = `
     <div class="card-3d" id="card3d">
-      <div class="card-face card-front">${frontContent}</div>
+      <div class="card-face card-front" id="view-card-front" title="Click to enlarge">${frontContent}</div>
       <div class="card-face card-back">
         <div class="card-back-lines">${Array(10).fill('<div class="card-back-line"></div>').join('')}</div>
         <div class="card-back-top-ornament">— ✦ —</div>
@@ -261,125 +261,97 @@ function renderCardScreen() {
 }
 
 // ── Add / Edit card modal ─────────────────────────────────────────────────────
+let selectedTemplateId = CARD_TEMPLATES[0].id;
+let selectedThemeId    = CARD_TEMPLATES[0].themes[0].id;
+
 document.getElementById('add-card-btn').addEventListener('click', () => openCardModal(null));
 
 function openCardModal(card) {
   editingId  = card ? (card.id ?? card._index) : null;
-  pendingSvg = null;
+  pendingSvg = card?.card_svg || null;
   document.getElementById('card-modal-title').textContent = card ? 'Edit Card' : 'New Card';
   document.getElementById('card-occasion').value = card ? card.occasion : "Father's Day";
   document.getElementById('card-year').value = card ? card.year : new Date().getFullYear();
   document.getElementById('card-message').value = card ? card.message : '';
   document.getElementById('card-error').classList.add('hidden');
-  document.getElementById('design-loading').classList.add('hidden');
-  resetDesignChat();
-
-  // If editing a card that already has a generated SVG, show it
-  if (card?.card_svg) {
-    pendingSvg = card.card_svg;
-    document.getElementById('design-svg-preview').innerHTML = card.card_svg;
-    document.getElementById('design-preview-wrap').classList.remove('hidden');
-  }
-
+  buildTemplateGrid();
+  updateMiniPreview();
   showModal('card-modal');
-  setTimeout(() => document.getElementById('card-message').focus(), 50);
 }
 
-// ── AI card generation (chat) ─────────────────────────────────────────────────
-let designChatHistory = [];
-
-function resetDesignChat() {
-  designChatHistory = [];
-  const log = document.getElementById('design-chat-log');
-  log.innerHTML = '';
-  log.classList.add('hidden');
-  document.getElementById('design-preview-wrap').classList.add('hidden');
-  document.getElementById('design-svg-preview').innerHTML = '';
+function buildTemplateGrid() {
+  const grid = document.getElementById('template-grid');
+  grid.innerHTML = CARD_TEMPLATES.map(t => `
+    <button class="tmpl-btn ${t.id === selectedTemplateId ? 'active' : ''}" data-tmpl="${t.id}">${t.name}</button>
+  `).join('');
+  grid.querySelectorAll('.tmpl-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedTemplateId = btn.dataset.tmpl;
+      selectedThemeId = CARD_TEMPLATES.find(t => t.id === selectedTemplateId).themes[0].id;
+      buildTemplateGrid();
+      buildThemeRow();
+      updateMiniPreview();
+    });
+  });
+  buildThemeRow();
 }
 
-function appendChatMessage(role, text) {
-  const log = document.getElementById('design-chat-log');
-  log.classList.remove('hidden');
-  const el = document.createElement('div');
-  el.className = 'chat-msg chat-msg--' + role;
-  el.textContent = text;
-  log.appendChild(el);
-  log.scrollTop = log.scrollHeight;
+function buildThemeRow() {
+  const tmpl = CARD_TEMPLATES.find(t => t.id === selectedTemplateId);
+  const row  = document.getElementById('theme-row');
+  row.innerHTML = tmpl.themes.map(th => `
+    <button class="theme-dot ${th.id === selectedThemeId ? 'active' : ''}" data-theme="${th.id}" title="${th.label}" style="background:${th.accent}"></button>
+  `).join('');
+  row.querySelectorAll('.theme-dot').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedThemeId = btn.dataset.theme;
+      buildThemeRow();
+      updateMiniPreview();
+    });
+  });
 }
 
-async function generateDesign() {
-  const promptEl = document.getElementById('card-design-prompt');
-  const prompt   = promptEl.value.trim();
+function currentSvg() {
+  const tmpl    = CARD_TEMPLATES.find(t => t.id === selectedTemplateId);
+  const theme   = tmpl.themes.find(th => th.id === selectedThemeId);
   const occasion = document.getElementById('card-occasion').value;
-  const year     = document.getElementById('card-year').value;
-  if (!prompt) { showNotice('Describe the design first.'); return; }
-
-  const genBtn  = document.getElementById('generate-design-btn');
-  const loading = document.getElementById('design-loading');
-  const preview = document.getElementById('design-preview-wrap');
-
-  appendChatMessage('user', prompt);
-  promptEl.value = '';
-  genBtn.disabled = true;
-  loading.classList.remove('hidden');
-  preview.classList.add('hidden');
-
-  // Build messages: if we have a previous SVG, include it as context
-  if (pendingSvg && designChatHistory.length > 0) {
-    designChatHistory.push({
-      role: 'user',
-      content: `Here is the current SVG design:\n${pendingSvg}\n\nNow please refine it based on this feedback: ${prompt}`
-    });
-  } else {
-    designChatHistory.push({ role: 'user', content: prompt });
-  }
-
-  try {
-    const res  = await fetch('/api/generate-card', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ messages: designChatHistory, occasion, year }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.svg) throw new Error((data.detail ? data.detail : data.error) || 'No SVG returned');
-
-    designChatHistory.push({ role: 'assistant', content: data.svg });
-    pendingSvg = data.svg;
-    document.getElementById('design-svg-preview').innerHTML = data.svg;
-    preview.classList.remove('hidden');
-    appendChatMessage('assistant', '✦ Design updated — describe any changes or save the card.');
-  } catch (err) {
-    console.error(err);
-    designChatHistory.pop();
-    appendChatMessage('assistant', 'Generation failed: ' + err.message);
-  } finally {
-    genBtn.disabled = false;
-    loading.classList.add('hidden');
-  }
+  const year     = document.getElementById('card-year').value || new Date().getFullYear();
+  return tmpl.render(theme, occasion, year);
 }
 
-document.getElementById('generate-design-btn').addEventListener('click', generateDesign);
-document.getElementById('card-design-prompt').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); generateDesign(); }
+function updateMiniPreview() {
+  const svg = currentSvg();
+  pendingSvg = svg;
+  document.getElementById('mini-front').innerHTML = svg;
+  document.getElementById('mini-message-text').textContent =
+    document.getElementById('card-message').value || '✦';
+}
+
+// re-render preview when occasion/year/message change
+['card-occasion','card-year','card-message'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateMiniPreview);
+});
+
+// mini card flip
+document.getElementById('mini-3d-scene').addEventListener('click', () => {
+  document.getElementById('mini-3d-card').classList.toggle('open');
 });
 
 document.getElementById('card-cancel-btn').addEventListener('click', () => hideModal('card-modal'));
 document.getElementById('card-modal').addEventListener('click', e => { if (e.target.id === 'card-modal') hideModal('card-modal'); });
 
-document.getElementById('card-image').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    document.getElementById('card-image-preview').src = ev.target.result;
-    document.getElementById('card-image-preview-wrap').classList.remove('hidden');
-  };
-  reader.readAsDataURL(file);
-});
-
-document.getElementById('card-image-remove').addEventListener('click', () => {
-  document.getElementById('card-image').value = '';
-  document.getElementById('card-image-preview-wrap').classList.add('hidden');
+// lightbox: click card view SVG to enlarge
+document.addEventListener('click', e => {
+  if (e.target.closest('#view-card-front')) {
+    const svg = document.querySelector('#view-card-front svg');
+    if (!svg) return;
+    const lb = document.getElementById('svg-lightbox');
+    document.getElementById('svg-lightbox-inner').innerHTML = svg.outerHTML;
+    lb.classList.remove('hidden');
+  }
+  if (e.target.id === 'svg-lightbox') {
+    document.getElementById('svg-lightbox').classList.add('hidden');
+  }
 });
 
 document.getElementById('card-save-btn').addEventListener('click', saveCard);
@@ -400,25 +372,7 @@ async function saveCard() {
   saveBtn.textContent = 'Saving…';
 
   try {
-    let image_url  = null;
-    let image_path = null;
-    const imageFile = document.getElementById('card-image').files[0];
-
-    if (USING_SUPABASE && imageFile) {
-      const ext  = imageFile.name.split('.').pop();
-      const path = `${Date.now()}.${ext}`;
-      const { error: upErr } = await db.storage.from(BUCKET).upload(path, imageFile, { upsert: true });
-      if (upErr) throw upErr;
-      const { data: urlData } = db.storage.from(BUCKET).getPublicUrl(path);
-      image_url  = urlData.publicUrl;
-      image_path = path;
-
-      // Remove old image if replacing
-      const old = allCards.find(c => (c.id ?? c._index) === editingId);
-      if (old?.image_path) await db.storage.from(BUCKET).remove([old.image_path]);
-    }
-
-    const payload = { occasion, year, message, image_url, image_path, card_svg: pendingSvg || null };
+    const payload = { occasion, year, message, image_url: null, image_path: null, card_svg: pendingSvg || null };
 
     if (USING_SUPABASE) {
       if (editingId !== null) {

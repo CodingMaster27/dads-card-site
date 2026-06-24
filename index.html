@@ -58,42 +58,55 @@
     <div id="card-modal" class="modal-overlay hidden">
       <div class="modal card-modal">
         <h2 id="card-modal-title">New Card</h2>
-        <p id="card-modal-subtitle">Fill in the details below</p>
-        <label>Occasion
-          <select id="card-occasion">
-            <option value="Father's Day">Father's Day</option>
-            <option value="Birthday">Birthday</option>
-            <option value="Christmas">Christmas</option>
-            <option value="Other">Other</option>
-          </select>
-        </label>
-        <label>Year
-          <input type="number" id="card-year" min="1900" max="2100" />
-        </label>
-        <label>Message
-          <textarea id="card-message" rows="5" placeholder="Write the card message here…"></textarea>
-        </label>
-        <div class="design-section">
-          <div class="design-label">Card Design <span class="design-badge">AI</span></div>
-          <div id="design-chat-log" class="design-chat-log hidden"></div>
-          <div id="design-preview-wrap" class="hidden design-preview-wrap">
-            <div id="design-svg-preview" class="design-svg-preview"></div>
+
+        <div class="card-designer">
+          <!-- left: form -->
+          <div class="card-designer-form">
+            <label>Occasion
+              <select id="card-occasion">
+                <option value="Father's Day">Father's Day</option>
+                <option value="Birthday">Birthday</option>
+                <option value="Christmas">Christmas</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label>Year
+              <input type="number" id="card-year" min="1900" max="2100" />
+            </label>
+            <label>Message <span class="label-hint">(inside the card)</span>
+              <textarea id="card-message" rows="4" placeholder="Write your message here…"></textarea>
+            </label>
+            <div class="design-label">Card Design</div>
+            <div class="template-grid" id="template-grid"></div>
+            <div class="theme-row" id="theme-row"></div>
           </div>
-          <div id="design-loading" class="hidden design-loading">
-            <div class="design-spinner"></div>
-            <span>Claude is illustrating your card…</span>
-          </div>
-          <div class="design-chat-input-row">
-            <textarea id="card-design-prompt" rows="2" placeholder="Describe the art you want — e.g. a golden sunset over the ocean…"></textarea>
-            <button id="generate-design-btn" class="btn-generate">✦ Send</button>
+
+          <!-- right: live 3D preview -->
+          <div class="card-designer-preview">
+            <div class="preview-label">Preview</div>
+            <div class="mini-3d-scene" id="mini-3d-scene">
+              <div class="mini-3d-card" id="mini-3d-card">
+                <div class="mini-face mini-front" id="mini-front"></div>
+                <div class="mini-face mini-back">
+                  <p id="mini-message-text" class="mini-message"></p>
+                </div>
+              </div>
+            </div>
+            <p class="preview-hint">Click to flip</p>
           </div>
         </div>
+
         <div class="modal-actions">
           <button id="card-cancel-btn" class="btn-secondary">Cancel</button>
           <button id="card-save-btn" class="btn-primary">Save Card</button>
         </div>
         <p class="modal-error hidden" id="card-error">Something went wrong. Try again.</p>
       </div>
+    </div>
+
+    <!-- SVG lightbox -->
+    <div id="svg-lightbox" class="svg-lightbox hidden">
+      <div class="svg-lightbox-inner" id="svg-lightbox-inner"></div>
     </div>
 
     <!-- Home screen: gallery grouped by occasion -->
@@ -121,6 +134,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="cards.js"></script>
   <script src="config.js"></script>
+  <script src="templates.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
