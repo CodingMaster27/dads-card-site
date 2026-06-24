@@ -784,6 +784,9 @@ main {
 .svg-lightbox-inner svg { width: 100%; height: 100%; display: block; }
 #view-card-front { cursor: zoom-in; }
 
+.card-front-svg { width: 100%; height: 100%; }
+.card-front-svg svg { width: 100%; height: 100%; display: block; }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Back button ─────────────────────────────────────────────────────────── */
