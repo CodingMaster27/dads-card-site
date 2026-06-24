@@ -133,11 +133,10 @@ document.getElementById('back-btn').addEventListener('click', showHomeScreen);
 function renderGallery() {
   const main = document.getElementById('main-content');
   main.innerHTML = '';
-  const hasAny = allCards.length > 0;
   document.getElementById('empty-msg').classList.add('hidden');
 
   GROUPS.forEach(group => {
-    const cards = allCards.filter(c => c.occasion === group.key);
+    const cards = [...allCards.filter(c => c.occasion === group.key)].sort((a, b) => b.year - a.year);
 
     const section = document.createElement('section');
     section.className = 'group';
@@ -151,31 +150,48 @@ function renderGallery() {
       ${cards.length === 0 ? `<p class="empty-group">${isAdmin ? 'No cards yet — add one!' : 'Coming soon ✦'}</p>` : ''}
     `;
 
-    const grid = section.querySelector('.group-grid');
-    [...cards].sort((a, b) => b.year - a.year).forEach(card => {
+    if (cards.length > 0) {
+      const grid = section.querySelector('.group-grid');
       const tile = document.createElement('div');
       tile.className = 'card';
-      const imgHtml = card.image_url
-        ? `<img class="card-img" src="${card.image_url}" alt="" loading="lazy" />`
-        : `<div class="card-placeholder">
-             <span class="card-placeholder-icon">${group.icon}</span>
-             <div class="card-placeholder-lines">
-               <div class="card-placeholder-line"></div>
-               <div class="card-placeholder-line"></div>
-               <div class="card-placeholder-line"></div>
-             </div>
-           </div>`;
-      tile.innerHTML = `
-        ${imgHtml}
-        <div class="card-body">
-          ${isAdmin
-            ? `<div class="card-year">${card.year}</div><div class="card-snippet">${card.message || ''}</div>`
-            : `<div class="card-cta">CLICK TO VIEW</div>`}
-        </div>
-      `;
-      tile.addEventListener('click', () => showCardScreen(group.key));
+      let yearIdx = 0;
+
+      function renderTile() {
+        const card = cards[yearIdx];
+        const canUp = yearIdx > 0;
+        const canDown = yearIdx < cards.length - 1;
+        tile.innerHTML = `
+          <div class="card-placeholder">
+            <span class="card-placeholder-icon">${group.icon}</span>
+            <div class="tile-year-selector">
+              <button class="tile-year-arrow${canUp ? '' : ' disabled'}" data-dir="-1">▲</button>
+              <span class="tile-year">${card.year}</span>
+              <button class="tile-year-arrow${canDown ? '' : ' disabled'}" data-dir="1">▼</button>
+            </div>
+          </div>
+          <div class="card-body">
+            ${isAdmin
+              ? `<div class="card-year">${card.year}</div><div class="card-snippet">${card.message || ''}</div>`
+              : `<div class="card-cta">CLICK TO VIEW</div>`}
+          </div>
+        `;
+        tile.querySelectorAll('.tile-year-arrow').forEach(btn => {
+          btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const dir = parseInt(btn.dataset.dir);
+            const next = yearIdx + dir;
+            if (next >= 0 && next < cards.length) { yearIdx = next; renderTile(); }
+          });
+        });
+      }
+
+      renderTile();
+      tile.addEventListener('click', () => {
+        currentYear = cards[yearIdx].year;
+        showCardScreen(group.key);
+      });
       grid.appendChild(tile);
-    });
+    }
 
     main.appendChild(section);
   });
@@ -215,7 +231,7 @@ function renderCardScreen() {
 
   const hint = document.createElement('p');
   hint.className = 'card-tap-hint';
-  hint.textContent = 'Tap the card to open it';
+  hint.textContent = 'Tap the card to view fullscreen';
   content.appendChild(hint);
 
   const scene = document.createElement('div');
@@ -243,18 +259,8 @@ function renderCardScreen() {
       </div>
     </div>
   `;
-  scene.addEventListener('click', e => {
-    const card3d = scene.querySelector('.card-3d');
-    card3d.classList.toggle('open');
-    hint.textContent = card3d.classList.contains('open') ? 'Tap to close' : 'Tap the card to open it';
-  });
-
-  const fsBtn = document.createElement('button');
-  fsBtn.className = 'btn-fullscreen';
-  fsBtn.innerHTML = '⛶ Fullscreen';
-  fsBtn.addEventListener('click', () => openCardFullscreen(selected));
+  scene.addEventListener('click', () => openCardFullscreen(selected));
   content.appendChild(scene);
-  content.appendChild(fsBtn);
 
   if (isAdmin) {
     const adminActions = document.createElement('div');
