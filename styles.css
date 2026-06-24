@@ -469,14 +469,32 @@ main {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* ── AI design section ───────────────────────────────────────────────────── */
 /* ── Card designer modal ─────────────────────────────────────────────────── */
-.card-modal { width: min(840px, 96vw) !important; max-height: 90vh; overflow-y: auto; }
+.card-modal { width: min(920px, 96vw) !important; max-height: 92vh; overflow-y: auto; }
 
-.card-meta-row {
+.card-designer {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 24px;
+  align-items: start;
+}
+
+.card-designer-left {
   display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 0;
+}
+
+.cd-section {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.cd-section:last-child { border-bottom: none; }
+
+.cd-meta-row {
+  display: flex;
+  gap: 14px;
+  padding-top: 4px;
 }
 
 .meta-label {
@@ -484,204 +502,211 @@ main {
   flex-direction: column;
   gap: 4px;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
+.meta-label select, .meta-label input { margin-top: 2px; font-size: 0.88rem; }
 
-.meta-label select, .meta-label input {
-  margin-top: 2px;
-  font-size: 0.9rem;
+.cd-section-label {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
 }
 
-.card-designer {
+.cd-hint { font-weight: 400; font-style: italic; text-transform: none; letter-spacing: 0; }
+
+/* template thumbnails */
+.tmpl-thumb-grid {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 28px;
-  align-items: start;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
-.card-designer-form {
+.tmpl-thumb {
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 4px 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 4px;
+}
+.tmpl-thumb:hover { border-color: var(--gold); transform: translateY(-1px); }
+.tmpl-thumb.active { border-color: var(--gold); box-shadow: 0 0 12px rgba(201,168,76,0.25); }
+.tmpl-thumb span {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+.tmpl-thumb.active span { color: var(--gold-light); }
+.tmpl-thumb-img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.tmpl-thumb-img svg { width: 100%; height: 100%; display: block; }
+
+/* color swatches */
+.swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-/* AI chat */
-.ai-chat-wrap {
+.color-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s;
+}
+.color-swatch:hover { transform: scale(1.18); }
+.color-swatch.active { border-color: var(--text); transform: scale(1.15); box-shadow: 0 0 8px rgba(255,255,255,0.2); }
+
+/* element toggles */
+.toggle-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-item input[type=checkbox] { accent-color: var(--gold); width: 13px; height: 13px; cursor: pointer; }
+.toggle-item span { letter-spacing: 0.02em; }
+
+/* font row */
+.font-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.font-btn {
   background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.12s;
 }
+.font-btn:hover { border-color: var(--gold); color: var(--gold-light); }
+.font-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold-light); }
+
+/* tagline input */
+#card-tagline { font-size: 0.88rem; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+
+/* AI chat */
+.ai-chat-wrap { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 12px; border: none; }
 
 .ai-chat-log {
-  max-height: 200px;
+  max-height: 140px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  margin-bottom: 8px;
   scrollbar-width: thin;
+}
+
+.chat-msg {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  padding: 6px 10px;
+  border-radius: 10px;
+  max-width: 88%;
+}
+.chat-msg--user {
+  background: rgba(201,168,76,0.12);
+  border: 1px solid rgba(201,168,76,0.25);
+  color: var(--gold-light);
+  align-self: flex-end;
+}
+.chat-msg--assistant {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  align-self: flex-start;
 }
 
 .ai-chat-input-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: flex-end;
 }
-
 .ai-chat-input-row textarea {
-  flex: 1;
-  margin: 0;
-  resize: none;
+  flex: 1; margin: 0; resize: none;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.87rem;
+  font-size: 0.82rem;
 }
 
 .btn-ai-send {
-  padding: 9px 16px;
+  padding: 8px 12px;
   background: linear-gradient(135deg, #1e2840, #2a3550);
   border: 1px solid var(--gold);
   color: var(--gold-light);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  border-radius: 8px;
+  border-radius: 7px;
   cursor: pointer;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: background 0.15s;
+  transition: background 0.12s;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 .btn-ai-send:hover { background: linear-gradient(135deg, #253050, #303d5e); }
 .btn-ai-send:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .ai-loading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: flex; align-items: center; gap: 7px; margin-top: 6px;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  font-style: italic;
+  font-size: 0.75rem; color: var(--text-muted); font-style: italic;
 }
-
 .ai-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--border);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  flex-shrink: 0;
+  width: 13px; height: 13px;
+  border: 2px solid var(--border); border-top-color: var(--gold);
+  border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0;
 }
 
-/* manual override details */
-.manual-override {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-}
+/* message textarea */
+#card-message { font-size: 0.88rem; }
 
-.manual-override summary {
-  padding: 10px 14px;
-  cursor: pointer;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  list-style: none;
-  user-select: none;
-}
-.manual-override summary::-webkit-details-marker { display: none; }
-.manual-override summary::before { content: '▸ '; }
-.manual-override[open] summary::before { content: '▾ '; }
-.manual-override[open] { padding-bottom: 14px; }
-.manual-override[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 12px; }
-
-.manual-override > *:not(summary) { padding: 0 14px; }
-
-.override-label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-top: 10px;
-}
-
-.override-label textarea { margin-top: 4px; }
-
-.design-label {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  margin: 14px 0 8px;
-}
-
-.template-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.tmpl-btn {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  border-radius: 20px;
-  padding: 5px 14px;
-  font-size: 0.78rem;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.tmpl-btn:hover { border-color: var(--gold); color: var(--gold-light); }
-.tmpl-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold-light); font-weight: 700; }
-
-.theme-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.theme-dot {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: transform 0.15s, border-color 0.15s;
-}
-.theme-dot:hover { transform: scale(1.2); }
-.theme-dot.active { border-color: var(--text); transform: scale(1.15); }
-
-/* ── Mini 3D preview ─────────────────────────────────────────────────────── */
+/* ── Designer preview panel ──────────────────────────────────────────────── */
 .card-designer-preview {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding-top: 8px;
+  position: sticky;
+  top: 24px;
 }
 
 .preview-label {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -690,11 +715,11 @@ main {
 }
 
 .preview-hint {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   font-style: italic;
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 .mini-3d-scene {
@@ -702,74 +727,61 @@ main {
   width: 160px;
   height: 213px;
   cursor: pointer;
-  flex-shrink: 0;
 }
-
 .mini-3d-card {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   position: relative;
   transform-style: preserve-3d;
   transition: transform 0.7s ease-in-out;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-}
-
-.mini-3d-card.open { transform: rotateY(180deg); }
-
-.mini-face {
-  position: absolute;
-  inset: 0;
+  box-shadow: 0 14px 44px rgba(0,0,0,0.65);
   border-radius: 8px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  overflow: hidden;
 }
-
+.mini-3d-card.open { transform: rotateY(180deg); }
+.mini-face {
+  position: absolute; inset: 0; border-radius: 8px;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden;
+}
 .mini-front svg { width: 100%; height: 100%; display: block; }
-
 .mini-back {
   transform: rotateY(180deg);
   background: linear-gradient(160deg, #faf6ee 0%, #f2ead8 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px;
+  display: flex; align-items: center; justify-content: center; padding: 12px;
+}
+.mini-message {
+  font-family: 'Georgia', serif; font-size: 0.68rem; color: #2a1f0a;
+  line-height: 1.6; text-align: center; word-break: break-word;
+  max-height: 188px; overflow: hidden;
 }
 
-.mini-message {
-  font-family: 'Georgia', serif;
+.btn-randomize {
+  margin-top: 4px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 20px;
+  padding: 5px 14px;
   font-size: 0.72rem;
-  color: #2a1f0a;
-  line-height: 1.6;
-  text-align: center;
-  word-break: break-word;
-  max-height: 190px;
-  overflow: hidden;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: all 0.12s;
+  letter-spacing: 0.04em;
 }
+.btn-randomize:hover { border-color: var(--gold); color: var(--gold-light); }
 
 /* ── SVG lightbox ────────────────────────────────────────────────────────── */
 .svg-lightbox {
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background: rgba(0,0,0,0.92);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: zoom-out;
-  backdrop-filter: blur(6px);
+  z-index: 200; display: flex;
+  align-items: center; justify-content: center;
+  cursor: zoom-out; backdrop-filter: blur(6px);
 }
-
 .svg-lightbox-inner {
-  width: min(360px, 90vw);
-  height: min(480px, 90vh);
-  border-radius: 12px;
-  overflow: hidden;
+  width: min(360px, 90vw); height: min(480px, 90vh);
+  border-radius: 12px; overflow: hidden;
   box-shadow: 0 24px 80px rgba(0,0,0,0.8);
 }
-
 .svg-lightbox-inner svg { width: 100%; height: 100%; display: block; }
-
 #view-card-front { cursor: zoom-in; }
 
 @keyframes spin { to { transform: rotate(360deg); } }

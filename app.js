@@ -261,10 +261,40 @@ function renderCardScreen() {
 }
 
 // ── Card designer ─────────────────────────────────────────────────────────────
-const VISIBLE_TEMPLATES = CARD_TEMPLATES.filter(t => !t._hidden);
-let selectedTemplateId = VISIBLE_TEMPLATES[0].id;
-let selectedThemeId    = VISIBLE_TEMPLATES[0].themes[0].id;
-let aiChatHistory      = [];
+const BG_PALETTES = [
+  { label:'Deep Navy',    bg1:'#0a0f1e', bg2:'#1a2540' },
+  { label:'Midnight',     bg1:'#050505', bg2:'#0c0c14' },
+  { label:'Deep Forest',  bg1:'#040e08', bg2:'#0d2010' },
+  { label:'Burgundy',     bg1:'#100408', bg2:'#1e0a14' },
+  { label:'Deep Ocean',   bg1:'#040c14', bg2:'#082030' },
+  { label:'Twilight',     bg1:'#0a0414', bg2:'#180828' },
+  { label:'Charcoal',     bg1:'#100e08', bg2:'#1c1a12' },
+  { label:'Emerald Deep', bg1:'#040e0a', bg2:'#0a1e12' },
+];
+const ACCENT_PALETTES = [
+  { label:'Gold',      color:'#c9a84c', text:'#f0e8d0' },
+  { label:'Rose Gold', color:'#c8907a', text:'#f5e0d8' },
+  { label:'Silver',    color:'#a0aab8', text:'#dde4ee' },
+  { label:'Emerald',   color:'#4ac990', text:'#b0f0e0' },
+  { label:'Amethyst',  color:'#9070c0', text:'#e0d0f8' },
+  { label:'Coral',     color:'#c87060', text:'#f5d8d0' },
+  { label:'Sapphire',  color:'#6090c8', text:'#d0e0f8' },
+  { label:'Copper',    color:'#c88050', text:'#f0dcc0' },
+];
+const FONTS = [
+  { id:'Georgia',              label:'Classic' },
+  { id:'Palatino Linotype',    label:'Palatino' },
+  { id:'Times New Roman',      label:'Times'    },
+  { id:'Garamond',             label:'Garamond' },
+];
+
+let selectedTemplateId = CARD_TEMPLATES[0].id;
+let designCfg = {
+  bg1: CARD_TEMPLATES[0].defaultBg1, bg2: CARD_TEMPLATES[0].defaultBg2,
+  accent: CARD_TEMPLATES[0].defaultAccent, textColor: CARD_TEMPLATES[0].defaultText,
+  stars:true, border:true, corners:true, motif:true, divider:true, tagline:'', font:'Georgia',
+};
+let aiChatHistory = [];
 
 document.getElementById('add-card-btn').addEventListener('click', () => openCardModal(null));
 
@@ -275,125 +305,166 @@ function openCardModal(card) {
   document.getElementById('card-occasion').value = card ? card.occasion : "Father's Day";
   document.getElementById('card-year').value = card ? card.year : new Date().getFullYear();
   document.getElementById('card-message').value = card ? card.message : '';
+  document.getElementById('card-tagline').value = '';
   document.getElementById('card-error').classList.add('hidden');
   document.getElementById('mini-3d-card').classList.remove('open');
+  ['el-stars','el-border','el-corners','el-motif','el-divider'].forEach(id =>
+    document.getElementById(id).checked = true);
 
-  // reset AI chat
+  const tmpl = CARD_TEMPLATES[0];
+  selectedTemplateId = tmpl.id;
+  designCfg = { bg1:tmpl.defaultBg1, bg2:tmpl.defaultBg2, accent:tmpl.defaultAccent,
+    textColor:tmpl.defaultText, stars:true, border:true, corners:true, motif:true, divider:true, tagline:'', font:'Georgia' };
+
   aiChatHistory = [];
-  const log = document.getElementById('ai-chat-log');
-  log.innerHTML = '<div class="chat-msg chat-msg--assistant">Hey! Tell me what kind of card you\'re going for — a mood, a memory, anything — and I\'ll design it for you. ✦</div>';
+  document.getElementById('ai-chat-log').innerHTML =
+    '<div class="chat-msg chat-msg--assistant">Tell me what you\'re going for — a mood, a vibe, a memory — and I\'ll set it all up for you.</div>';
 
-  if (card?.card_svg) {
-    pendingSvg = card.card_svg;
-    document.getElementById('mini-front').innerHTML = card.card_svg;
-  }
+  if (card?.card_svg) document.getElementById('mini-front').innerHTML = card.card_svg;
 
-  buildTemplateGrid();
-  updateMiniPreview();
+  buildDesignerUI();
+  updatePreview();
   showModal('card-modal');
 }
 
-function buildTemplateGrid() {
-  const grid = document.getElementById('template-grid');
-  grid.innerHTML = VISIBLE_TEMPLATES.map(t => `
-    <button class="tmpl-btn ${t.id === selectedTemplateId ? 'active' : ''}" data-tmpl="${t.id}">${t.name}</button>
-  `).join('');
-  grid.querySelectorAll('.tmpl-btn').forEach(btn => {
+function buildDesignerUI() {
+  const grid = document.getElementById('tmpl-thumb-grid');
+  grid.innerHTML = CARD_TEMPLATES.map(t => {
+    const mini = t.render({ bg1:t.defaultBg1, bg2:t.defaultBg2, accent:t.defaultAccent,
+      textColor:t.defaultText, stars:true, border:true, corners:true, motif:true, divider:false,
+      tagline:'', font:'Georgia', occasion:'', year:'' });
+    return `<button class="tmpl-thumb ${t.id===selectedTemplateId?'active':''}" data-tmpl="${t.id}" title="${t.name}">
+      <div class="tmpl-thumb-img">${mini}</div>
+      <span>${t.name}</span>
+    </button>`;
+  }).join('');
+  grid.querySelectorAll('.tmpl-thumb').forEach(btn => {
     btn.addEventListener('click', () => {
       selectedTemplateId = btn.dataset.tmpl;
-      selectedThemeId = VISIBLE_TEMPLATES.find(t => t.id === selectedTemplateId).themes[0].id;
-      buildTemplateGrid();
-      buildThemeRow();
-      updateMiniPreview();
+      const t = CARD_TEMPLATES.find(t => t.id === selectedTemplateId);
+      designCfg.bg1 = t.defaultBg1; designCfg.bg2 = t.defaultBg2;
+      designCfg.accent = t.defaultAccent; designCfg.textColor = t.defaultText;
+      grid.querySelectorAll('.tmpl-thumb').forEach(b => b.classList.toggle('active', b===btn));
+      buildBgSwatches(); buildAccentSwatches();
+      updatePreview();
     });
   });
-  buildThemeRow();
+  buildBgSwatches();
+  buildAccentSwatches();
+  buildFontRow();
 }
 
-function buildThemeRow() {
-  const tmpl = VISIBLE_TEMPLATES.find(t => t.id === selectedTemplateId);
-  const row  = document.getElementById('theme-row');
-  row.innerHTML = tmpl.themes.map(th => `
-    <button class="theme-dot ${th.id === selectedThemeId ? 'active' : ''}" data-theme="${th.id}" title="${th.label}" style="background:${th.accent}"></button>
-  `).join('');
-  row.querySelectorAll('.theme-dot').forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedThemeId = btn.dataset.theme;
-      buildThemeRow();
-      updateMiniPreview();
-    });
-  });
+function buildBgSwatches() {
+  const row = document.getElementById('bg-swatches');
+  row.innerHTML = BG_PALETTES.map((p,i) =>
+    `<button class="color-swatch ${p.bg1===designCfg.bg1?'active':''}" data-i="${i}" title="${p.label}"
+      style="background:linear-gradient(135deg,${p.bg2},${p.bg1})"></button>`
+  ).join('');
+  row.querySelectorAll('.color-swatch').forEach(btn => btn.addEventListener('click', () => {
+    const p = BG_PALETTES[+btn.dataset.i];
+    designCfg.bg1 = p.bg1; designCfg.bg2 = p.bg2;
+    row.querySelectorAll('.color-swatch').forEach(b => b.classList.toggle('active', b===btn));
+    updatePreview();
+  }));
 }
 
-function updateMiniPreview() {
-  const tmpl    = VISIBLE_TEMPLATES.find(t => t.id === selectedTemplateId);
-  const theme   = tmpl.themes.find(th => th.id === selectedThemeId);
-  const occasion = document.getElementById('card-occasion').value;
-  const year     = document.getElementById('card-year').value || new Date().getFullYear();
-  const svg = tmpl.render(theme, occasion, year);
+function buildAccentSwatches() {
+  const row = document.getElementById('accent-swatches');
+  row.innerHTML = ACCENT_PALETTES.map((p,i) =>
+    `<button class="color-swatch ${p.color===designCfg.accent?'active':''}" data-i="${i}" title="${p.label}"
+      style="background:${p.color}"></button>`
+  ).join('');
+  row.querySelectorAll('.color-swatch').forEach(btn => btn.addEventListener('click', () => {
+    const p = ACCENT_PALETTES[+btn.dataset.i];
+    designCfg.accent = p.color; designCfg.textColor = p.text;
+    row.querySelectorAll('.color-swatch').forEach(b => b.classList.toggle('active', b===btn));
+    updatePreview();
+  }));
+}
+
+function buildFontRow() {
+  const row = document.getElementById('font-row');
+  row.innerHTML = FONTS.map(f =>
+    `<button class="font-btn ${f.id===designCfg.font?'active':''}" data-font="${f.id}"
+      style="font-family:${f.id},Georgia,serif">${f.label}</button>`
+  ).join('');
+  row.querySelectorAll('.font-btn').forEach(btn => btn.addEventListener('click', () => {
+    designCfg.font = btn.dataset.font;
+    row.querySelectorAll('.font-btn').forEach(b => b.classList.toggle('active', b===btn));
+    updatePreview();
+  }));
+}
+
+function updatePreview() {
+  const tmpl = CARD_TEMPLATES.find(t => t.id === selectedTemplateId);
+  const cfg = {
+    ...designCfg,
+    stars:   document.getElementById('el-stars').checked,
+    border:  document.getElementById('el-border').checked,
+    corners: document.getElementById('el-corners').checked,
+    motif:   document.getElementById('el-motif').checked,
+    divider: document.getElementById('el-divider').checked,
+    tagline: document.getElementById('card-tagline').value,
+    occasion: document.getElementById('card-occasion').value,
+    year:    document.getElementById('card-year').value || new Date().getFullYear(),
+  };
+  const svg = tmpl.render(cfg);
   pendingSvg = svg;
   document.getElementById('mini-front').innerHTML = svg;
   document.getElementById('mini-message-text').textContent =
     document.getElementById('card-message').value || 'Your message will appear here';
 }
 
-['card-occasion','card-year','card-message'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updateMiniPreview);
-});
+['card-occasion','card-year','card-message','card-tagline'].forEach(id =>
+  document.getElementById(id).addEventListener('input', updatePreview));
+['el-stars','el-border','el-corners','el-motif','el-divider'].forEach(id =>
+  document.getElementById(id).addEventListener('change', updatePreview));
 
-document.getElementById('mini-3d-scene').addEventListener('click', () => {
-  document.getElementById('mini-3d-card').classList.toggle('open');
+document.getElementById('mini-3d-scene').addEventListener('click', () =>
+  document.getElementById('mini-3d-card').classList.toggle('open'));
+
+document.getElementById('randomize-btn').addEventListener('click', () => {
+  selectedTemplateId = CARD_TEMPLATES[Math.floor(Math.random()*CARD_TEMPLATES.length)].id;
+  const bg = BG_PALETTES[Math.floor(Math.random()*BG_PALETTES.length)];
+  const ac = ACCENT_PALETTES[Math.floor(Math.random()*ACCENT_PALETTES.length)];
+  designCfg.bg1 = bg.bg1; designCfg.bg2 = bg.bg2;
+  designCfg.accent = ac.color; designCfg.textColor = ac.text;
+  designCfg.font = FONTS[Math.floor(Math.random()*FONTS.length)].id;
+  buildDesignerUI(); updatePreview();
 });
 
 // ── AI design assistant ───────────────────────────────────────────────────────
 async function sendToAI() {
-  const input    = document.getElementById('ai-chat-input');
-  const text     = input.value.trim();
+  const input = document.getElementById('ai-chat-input');
+  const text  = input.value.trim();
   if (!text) return;
-
-  const occasion = document.getElementById('card-occasion').value;
-  const year     = document.getElementById('card-year').value || new Date().getFullYear();
-
   appendAiMsg('user', text);
   input.value = '';
   document.getElementById('ai-send-btn').disabled = true;
   document.getElementById('ai-loading').classList.remove('hidden');
-
-  aiChatHistory.push({ role: 'user', content: text });
-
+  aiChatHistory.push({ role:'user', content:text });
   try {
-    const res  = await fetch('/api/generate-card', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
+    const res = await fetch('/api/generate-card', {
+      method:'POST', headers:{'content-type':'application/json'},
       body: JSON.stringify({
         messages: aiChatHistory,
-        occasion,
-        year,
-        templates: VISIBLE_TEMPLATES.map(t => ({ id: t.id, name: t.name, themes: t.themes.map(th => ({ id: th.id, label: th.label })) })),
+        occasion: document.getElementById('card-occasion').value,
+        year:     document.getElementById('card-year').value || new Date().getFullYear(),
+        templates: CARD_TEMPLATES.map(t => ({ id:t.id, name:t.name, defaultBg1:t.defaultBg1, defaultBg2:t.defaultBg2, defaultAccent:t.defaultAccent })),
+        bgPalettes: BG_PALETTES, accentPalettes: ACCENT_PALETTES,
       }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || data.error || 'Error');
-
-    aiChatHistory.push({ role: 'assistant', content: JSON.stringify(data) });
+    aiChatHistory.push({ role:'assistant', content:JSON.stringify(data) });
     appendAiMsg('assistant', data.reply || '✦');
-
-    // apply AI choices
-    if (data.template && VISIBLE_TEMPLATES.find(t => t.id === data.template)) {
-      selectedTemplateId = data.template;
-      const tmpl = VISIBLE_TEMPLATES.find(t => t.id === selectedTemplateId);
-      if (data.theme && tmpl.themes.find(th => th.id === data.theme)) {
-        selectedThemeId = data.theme;
-      } else {
-        selectedThemeId = tmpl.themes[0].id;
-      }
-      buildTemplateGrid();
-    }
-    if (data.message) {
-      document.getElementById('card-message').value = data.message;
-    }
-    updateMiniPreview();
-  } catch (err) {
+    if (data.template && CARD_TEMPLATES.find(t => t.id===data.template)) selectedTemplateId = data.template;
+    if (data.bg)     { designCfg.bg1 = data.bg.bg1; designCfg.bg2 = data.bg.bg2; }
+    if (data.accent) { const ap = ACCENT_PALETTES.find(p => p.color===data.accent); designCfg.accent = data.accent; designCfg.textColor = ap?.text || '#f0e8d0'; }
+    if (data.message) document.getElementById('card-message').value = data.message;
+    if (data.tagline) document.getElementById('card-tagline').value = data.tagline;
+    buildDesignerUI(); updatePreview();
+  } catch(err) {
     appendAiMsg('assistant', 'Something went wrong: ' + err.message);
   } finally {
     document.getElementById('ai-send-btn').disabled = false;
@@ -403,7 +474,7 @@ async function sendToAI() {
 
 function appendAiMsg(role, text) {
   const log = document.getElementById('ai-chat-log');
-  const el  = document.createElement('div');
+  const el = document.createElement('div');
   el.className = 'chat-msg chat-msg--' + role;
   el.textContent = text;
   log.appendChild(el);
@@ -412,11 +483,12 @@ function appendAiMsg(role, text) {
 
 document.getElementById('ai-send-btn').addEventListener('click', sendToAI);
 document.getElementById('ai-chat-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendToAI(); }
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendToAI(); }
 });
 
 document.getElementById('card-cancel-btn').addEventListener('click', () => hideModal('card-modal'));
-document.getElementById('card-modal').addEventListener('click', e => { if (e.target.id === 'card-modal') hideModal('card-modal'); });
+document.getElementById('card-modal').addEventListener('click', e => { if (e.target.id==='card-modal') hideModal('card-modal'); });
+
 
 // lightbox
 document.addEventListener('click', e => {

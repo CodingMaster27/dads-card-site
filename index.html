@@ -59,30 +59,68 @@
       <div class="modal card-modal">
         <h2 id="card-modal-title">Design a Card</h2>
 
-        <!-- meta row -->
-        <div class="card-meta-row">
-          <label class="meta-label">Occasion
-            <select id="card-occasion">
-              <option value="Father's Day">Father's Day</option>
-              <option value="Birthday">Birthday</option>
-              <option value="Christmas">Christmas</option>
-              <option value="Other">Other</option>
-            </select>
-          </label>
-          <label class="meta-label">Year
-            <input type="number" id="card-year" min="1900" max="2100" />
-          </label>
-        </div>
-
         <div class="card-designer">
-          <!-- left: AI chat + manual overrides -->
-          <div class="card-designer-form">
-            <div class="ai-chat-wrap">
+
+          <!-- ── LEFT: controls ── -->
+          <div class="card-designer-left">
+
+            <!-- meta -->
+            <div class="cd-section cd-meta-row">
+              <label class="meta-label">Occasion
+                <select id="card-occasion">
+                  <option value="Father's Day">Father's Day</option>
+                  <option value="Birthday">Birthday</option>
+                  <option value="Christmas">Christmas</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label class="meta-label">Year
+                <input type="number" id="card-year" min="1900" max="2100" />
+              </label>
+            </div>
+
+            <!-- templates -->
+            <div class="cd-section">
+              <div class="cd-section-label">Template</div>
+              <div class="tmpl-thumb-grid" id="tmpl-thumb-grid"></div>
+            </div>
+
+            <!-- colors -->
+            <div class="cd-section">
+              <div class="cd-section-label">Background</div>
+              <div class="swatch-row" id="bg-swatches"></div>
+              <div class="cd-section-label" style="margin-top:10px">Accent Color</div>
+              <div class="swatch-row" id="accent-swatches"></div>
+            </div>
+
+            <!-- elements -->
+            <div class="cd-section">
+              <div class="cd-section-label">Elements</div>
+              <div class="toggle-grid">
+                <label class="toggle-item"><input type="checkbox" id="el-stars" checked/><span>Stars</span></label>
+                <label class="toggle-item"><input type="checkbox" id="el-border" checked/><span>Border</span></label>
+                <label class="toggle-item"><input type="checkbox" id="el-corners" checked/><span>Corners</span></label>
+                <label class="toggle-item"><input type="checkbox" id="el-motif" checked/><span>Motif</span></label>
+                <label class="toggle-item"><input type="checkbox" id="el-divider" checked/><span>Divider</span></label>
+              </div>
+            </div>
+
+            <!-- front text -->
+            <div class="cd-section">
+              <div class="cd-section-label">Front Tagline <span class="cd-hint">(optional)</span></div>
+              <input type="text" id="card-tagline" placeholder="e.g. For the best dad" maxlength="40"/>
+              <div class="cd-section-label" style="margin-top:10px">Font Style</div>
+              <div class="font-row" id="font-row"></div>
+            </div>
+
+            <!-- AI assistant -->
+            <div class="cd-section ai-chat-wrap">
+              <div class="cd-section-label">✦ AI Design Assistant</div>
               <div class="ai-chat-log" id="ai-chat-log">
-                <div class="chat-msg chat-msg--assistant">Hey! Tell me what kind of card you're going for — a mood, a memory, anything — and I'll design it for you. ✦</div>
+                <div class="chat-msg chat-msg--assistant">Tell me what you're going for — a mood, a vibe, a memory — and I'll set it all up for you.</div>
               </div>
               <div class="ai-chat-input-row">
-                <textarea id="ai-chat-input" rows="2" placeholder="e.g. Dark and starry, something emotional about how much he means to me…"></textarea>
+                <textarea id="ai-chat-input" rows="2" placeholder="e.g. Dark and starry, deep and emotional…"></textarea>
                 <button id="ai-send-btn" class="btn-ai-send">Send</button>
               </div>
               <div id="ai-loading" class="hidden ai-loading">
@@ -90,18 +128,15 @@
               </div>
             </div>
 
-            <details class="manual-override" id="manual-override">
-              <summary>Manually adjust design</summary>
-              <div class="design-label">Template</div>
-              <div class="template-grid" id="template-grid"></div>
-              <div class="theme-row" id="theme-row"></div>
-              <label class="override-label">Message inside card
-                <textarea id="card-message" rows="4" placeholder="The message written inside the card…"></textarea>
-              </label>
-            </details>
+            <!-- message inside -->
+            <div class="cd-section">
+              <div class="cd-section-label">Message Inside Card</div>
+              <textarea id="card-message" rows="4" placeholder="Write the message that will appear inside the card…"></textarea>
+            </div>
+
           </div>
 
-          <!-- right: live 3D preview -->
+          <!-- ── RIGHT: live 3D preview ── -->
           <div class="card-designer-preview">
             <div class="preview-label">Live Preview</div>
             <div class="mini-3d-scene" id="mini-3d-scene">
@@ -113,7 +148,9 @@
               </div>
             </div>
             <p class="preview-hint">Click to flip</p>
+            <button id="randomize-btn" class="btn-randomize">⚄ Randomize</button>
           </div>
+
         </div>
 
         <div class="modal-actions">

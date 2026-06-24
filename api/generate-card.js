@@ -1,38 +1,44 @@
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages, occasion, year, templates } = req.body;
+  const { messages, occasion, year, templates, bgPalettes, accentPalettes } = req.body;
   if (!messages?.length) return res.status(400).json({ error: 'messages required' });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
-  const templateList = (templates || [])
-    .map(t => `- id: "${t.id}", name: "${t.name}", themes: ${t.themes.map(th => `"${th.id}" (${th.label})`).join(', ')}`)
-    .join('\n');
+  const tmplList = (templates || []).map(t =>
+    `- id: "${t.id}", name: "${t.name}", defaultBg: "${t.defaultBg1}" → "${t.defaultBg2}", accent: "${t.defaultAccent}"`
+  ).join('\n');
+
+  const bgList = (bgPalettes || []).map((p,i) =>
+    `${i}: "${p.label}" (${p.bg1} → ${p.bg2})`
+  ).join('\n');
+
+  const acList = (accentPalettes || []).map((p,i) =>
+    `${i}: "${p.label}" (${p.color})`
+  ).join('\n');
 
   const system = `You are a warm, creative card design assistant helping someone make a beautiful card for their dad Darren.
+Occasion: "${occasion}", year: ${year}.
 
-Your job is to have a friendly conversation, understand what they want, and choose the best design for them.
+Available templates:\n${tmplList}
 
-Available templates:
-${templateList}
+Background palettes (use bg1/bg2 hex values exactly):\n${bgList}
 
-After each user message, respond with a JSON object (and ONLY the JSON object, no markdown fences) like:
+Accent palettes (use color hex exactly):\n${acList}
+
+After each user message, respond with ONLY a JSON object (no markdown, no fences):
 {
-  "reply": "Your warm conversational reply here",
-  "template": "template-id or null if not decided yet",
-  "theme": "theme-id or null if not decided yet",
-  "message": "The card message to write inside, or null if not ready yet"
+  "reply": "Short warm reply, 1-2 sentences",
+  "template": "template-id or null",
+  "bg": { "bg1": "#hex", "bg2": "#hex" } or null,
+  "accent": "#hex or null",
+  "message": "Heartfelt card message from Sebastian to Darren, or null",
+  "tagline": "Short front-of-card tagline (max 6 words) or null"
 }
 
-Rules:
-- Keep replies short, warm, and enthusiastic
-- Ask one clarifying question at a time if you need more info
-- Once you have enough to go on, pick a template+theme and write a heartfelt message
-- The message should feel personal, from Sebastian to his dad Darren
-- Occasion is "${occasion}", year is ${year}
-- You can update template/theme/message on any turn as you refine the design`;
+Rules: Keep replies warm and short. Pick designs that match the user's vibe. The message should feel personal.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
