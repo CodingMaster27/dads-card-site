@@ -526,7 +526,8 @@ function openCardFullscreen(card) {
   `;
   document.getElementById('svg-lightbox-inner').style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;background:transparent;width:auto;height:auto;border-radius:0;box-shadow:none;';
   fs.classList.remove('hidden');
-  let fsFlipped = false;
+  let fsFlipped = true;
+  document.getElementById('fs-card').style.transform = 'rotateY(180deg)';
   document.getElementById('fs-scene').addEventListener('click', e => {
     e.stopPropagation();
     fsFlipped = !fsFlipped;
