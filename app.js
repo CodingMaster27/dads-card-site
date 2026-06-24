@@ -157,6 +157,8 @@ function renderGallery() {
       tile.className = 'card';
       const imgHtml = card.image_url
         ? `<img class="card-img" src="${card.image_url}" alt="" loading="lazy" />`
+        : card.card_svg
+        ? `<div class="card-img card-tile-svg">${card.card_svg}</div>`
         : `<div class="card-placeholder">
              <span class="card-placeholder-icon">${group.icon}</span>
              <div class="card-placeholder-lines">
