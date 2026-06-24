@@ -244,12 +244,17 @@ function renderCardScreen() {
     </div>
   `;
   scene.addEventListener('click', e => {
-    if (e.target.closest('#view-card-back')) return;
     const card3d = scene.querySelector('.card-3d');
     card3d.classList.toggle('open');
-    hint.textContent = card3d.classList.contains('open') ? 'Tap card to close • Tap message to enlarge' : 'Tap the card to open it';
+    hint.textContent = card3d.classList.contains('open') ? 'Tap to close' : 'Tap the card to open it';
   });
+
+  const fsBtn = document.createElement('button');
+  fsBtn.className = 'btn-fullscreen';
+  fsBtn.innerHTML = '⛶ Fullscreen';
+  fsBtn.addEventListener('click', () => openCardFullscreen(selected));
   content.appendChild(scene);
+  content.appendChild(fsBtn);
 
   if (isAdmin) {
     const adminActions = document.createElement('div');
@@ -494,28 +499,37 @@ document.getElementById('card-cancel-btn').addEventListener('click', () => hideM
 document.getElementById('card-modal').addEventListener('click', e => { if (e.target.id==='card-modal') hideModal('card-modal'); });
 
 
-// lightbox
-document.addEventListener('click', e => {
-  if (e.target.closest('#view-card-front')) {
-    const svg = document.querySelector('#view-card-front svg');
-    if (!svg) return;
-    document.getElementById('svg-lightbox-inner').innerHTML = svg.outerHTML;
-    document.getElementById('svg-lightbox-inner').style.background = '';
-    document.getElementById('svg-lightbox').classList.remove('hidden');
-  }
-  if (e.target.closest('#view-card-back')) {
-    const msg = document.querySelector('#view-card-back .card-back-message')?.textContent || '';
-    const sig = document.querySelector('#view-card-back .card-back-signature')?.textContent || '';
-    document.getElementById('svg-lightbox-inner').style.background = 'linear-gradient(160deg,#faf6ee,#f2ead8)';
-    document.getElementById('svg-lightbox-inner').innerHTML = `
-      <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;box-sizing:border-box;gap:24px;">
-        <div style="font-family:Georgia,serif;font-size:1.05rem;color:#2a1f0a;line-height:1.9;text-align:center;white-space:pre-wrap;">${msg}</div>
-        <div style="font-family:Georgia,serif;font-size:0.9rem;color:#8b6914;font-style:italic;">${sig}</div>
-      </div>`;
-    document.getElementById('svg-lightbox').classList.remove('hidden');
-  }
+// fullscreen card viewer
+function openCardFullscreen(card) {
+  const W = Math.min(340, window.innerWidth * 0.82);
+  const H = W * (480 / 360);
+  const fs = document.getElementById('svg-lightbox');
+  document.getElementById('svg-lightbox-inner').innerHTML = `
+    <div style="perspective:1400px;width:${W}px;height:${H}px;cursor:pointer;" id="fs-scene">
+      <div id="fs-card" style="width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.75s ease-in-out;box-shadow:0 24px 80px rgba(0,0,0,0.8);">
+        <div style="position:absolute;inset:0;border-radius:6px 14px 14px 6px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;background:none;">
+          ${card.card_svg || '<div style="width:100%;height:100%;background:#1a2540;display:flex;align-items:center;justify-content:center;font-size:3rem;">👔</div>'}
+        </div>
+        <div style="position:absolute;inset:0;border-radius:6px 14px 14px 6px;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);background:linear-gradient(160deg,#faf6ee,#f2ead8);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;box-sizing:border-box;gap:20px;">
+          <div style="font-family:Georgia,serif;font-size:0.95rem;color:#2a1f0a;line-height:1.9;text-align:center;white-space:pre-wrap;">${card.message || ''}</div>
+          <div style="font-family:Georgia,serif;font-size:0.85rem;color:#8b6914;font-style:italic;">With love ♥</div>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:18px;font-family:-apple-system,sans-serif;font-size:0.75rem;color:rgba(255,255,255,0.4);letter-spacing:0.06em;">TAP TO FLIP • TAP OUTSIDE TO CLOSE</p>
+  `;
+  document.getElementById('svg-lightbox-inner').style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;background:transparent;width:auto;height:auto;border-radius:0;box-shadow:none;';
+  fs.classList.remove('hidden');
+  document.getElementById('fs-scene').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('fs-card').classList.toggle('open');
+  });
+}
+
+document.getElementById('svg-lightbox').addEventListener('click', e => {
   if (e.target.id === 'svg-lightbox') {
     document.getElementById('svg-lightbox').classList.add('hidden');
+    document.getElementById('svg-lightbox-inner').style.cssText = '';
   }
 });
 
