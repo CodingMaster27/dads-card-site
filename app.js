@@ -507,7 +507,7 @@ document.getElementById('card-modal').addEventListener('click', e => { if (e.tar
 
 // fullscreen card viewer
 function openCardFullscreen(card) {
-  const W = Math.min(340, window.innerWidth * 0.82);
+  const W = Math.min(400, window.innerWidth * 0.9, (window.innerHeight * 0.82) * (360/480));
   const H = W * (480 / 360);
   const fs = document.getElementById('svg-lightbox');
   document.getElementById('svg-lightbox-inner').innerHTML = `
@@ -516,9 +516,9 @@ function openCardFullscreen(card) {
         <div style="position:absolute;inset:0;border-radius:6px 14px 14px 6px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;background:none;">
           ${card.card_svg || '<div style="width:100%;height:100%;background:#1a2540;display:flex;align-items:center;justify-content:center;font-size:3rem;">👔</div>'}
         </div>
-        <div style="position:absolute;inset:0;border-radius:6px 14px 14px 6px;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);background:linear-gradient(160deg,#faf6ee,#f2ead8);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;box-sizing:border-box;gap:20px;">
-          <div style="font-family:Georgia,serif;font-size:0.95rem;color:#2a1f0a;line-height:1.9;text-align:center;white-space:pre-wrap;">${card.message || ''}</div>
-          <div style="font-family:Georgia,serif;font-size:0.85rem;color:#8b6914;font-style:italic;">With love ♥</div>
+        <div style="position:absolute;inset:0;border-radius:6px 14px 14px 6px;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:rotateY(180deg);background:linear-gradient(160deg,#faf6ee,#f2ead8);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 24px;box-sizing:border-box;gap:16px;overflow-y:auto;">
+          <div style="font-family:Georgia,serif;font-size:0.88rem;color:#2a1f0a;line-height:1.85;text-align:center;white-space:pre-wrap;flex:1;">${card.message || ''}</div>
+          <div style="font-family:Georgia,serif;font-size:0.8rem;color:#8b6914;font-style:italic;flex-shrink:0;">With love ♥</div>
         </div>
       </div>
     </div>
