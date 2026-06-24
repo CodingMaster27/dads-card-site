@@ -170,8 +170,8 @@ function renderGallery() {
             </div>
           </div>
           <div class="card-body">
-            ${isAdmin
-              ? `<div class="card-year">${card.year}</div><div class="card-snippet">${card.message || ''}</div>`
+            ${false
+              ? ``
               : `<div class="card-cta">CLICK TO VIEW</div>`}
           </div>
         `;
@@ -526,9 +526,11 @@ function openCardFullscreen(card) {
   `;
   document.getElementById('svg-lightbox-inner').style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;background:transparent;width:auto;height:auto;border-radius:0;box-shadow:none;';
   fs.classList.remove('hidden');
+  let fsFlipped = false;
   document.getElementById('fs-scene').addEventListener('click', e => {
     e.stopPropagation();
-    document.getElementById('fs-card').classList.toggle('open');
+    fsFlipped = !fsFlipped;
+    document.getElementById('fs-card').style.transform = fsFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
   });
 }
 
