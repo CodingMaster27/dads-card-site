@@ -235,7 +235,7 @@ function renderCardScreen() {
   scene.innerHTML = `
     <div class="card-3d" id="card3d" style="width:${W}px;height:${H}px;position:relative;transform-style:preserve-3d;transition:transform 0.75s ease-in-out;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
       <div class="card-face card-front ${selected.card_svg ? 'card-front--svg' : ''}" id="view-card-front" title="Click to enlarge" style="position:absolute;inset:0;overflow:hidden;border-radius:6px 14px 14px 6px;backface-visibility:hidden;-webkit-backface-visibility:hidden;${selected.card_svg ? 'background:none;' : ''}">${frontContent}</div>
-      <div class="card-face card-back">
+      <div class="card-face card-back" id="view-card-back" title="Click to enlarge" style="cursor:zoom-in;">
         <div class="card-back-lines">${Array(10).fill('<div class="card-back-line"></div>').join('')}</div>
         <div class="card-back-top-ornament">— ✦ —</div>
         <div class="card-back-message">${selected.message || ''}</div>
@@ -499,6 +499,18 @@ document.addEventListener('click', e => {
     const svg = document.querySelector('#view-card-front svg');
     if (!svg) return;
     document.getElementById('svg-lightbox-inner').innerHTML = svg.outerHTML;
+    document.getElementById('svg-lightbox-inner').style.background = '';
+    document.getElementById('svg-lightbox').classList.remove('hidden');
+  }
+  if (e.target.closest('#view-card-back')) {
+    const msg = document.querySelector('#view-card-back .card-back-message')?.textContent || '';
+    const sig = document.querySelector('#view-card-back .card-back-signature')?.textContent || '';
+    document.getElementById('svg-lightbox-inner').style.background = 'linear-gradient(160deg,#faf6ee,#f2ead8)';
+    document.getElementById('svg-lightbox-inner').innerHTML = `
+      <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;box-sizing:border-box;gap:24px;">
+        <div style="font-family:Georgia,serif;font-size:1.05rem;color:#2a1f0a;line-height:1.9;text-align:center;white-space:pre-wrap;">${msg}</div>
+        <div style="font-family:Georgia,serif;font-size:0.9rem;color:#8b6914;font-style:italic;">${sig}</div>
+      </div>`;
     document.getElementById('svg-lightbox').classList.remove('hidden');
   }
   if (e.target.id === 'svg-lightbox') {
