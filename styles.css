@@ -471,7 +471,30 @@ main {
 
 /* ── AI design section ───────────────────────────────────────────────────── */
 /* ── Card designer modal ─────────────────────────────────────────────────── */
-.card-modal { width: min(820px, 96vw) !important; max-height: 90vh; overflow-y: auto; }
+.card-modal { width: min(840px, 96vw) !important; max-height: 90vh; overflow-y: auto; }
+
+.card-meta-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.meta-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.meta-label select, .meta-label input {
+  margin-top: 2px;
+  font-size: 0.9rem;
+}
 
 .card-designer {
   display: grid;
@@ -483,16 +506,122 @@ main {
 .card-designer-form {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 12px;
 }
 
-.label-hint {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-style: italic;
-  margin-left: 4px;
+/* AI chat */
+.ai-chat-wrap {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
+
+.ai-chat-log {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: thin;
+}
+
+.ai-chat-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.ai-chat-input-row textarea {
+  flex: 1;
+  margin: 0;
+  resize: none;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.87rem;
+}
+
+.btn-ai-send {
+  padding: 9px 16px;
+  background: linear-gradient(135deg, #1e2840, #2a3550);
+  border: 1px solid var(--gold);
+  color: var(--gold-light);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.btn-ai-send:hover { background: linear-gradient(135deg, #253050, #303d5e); }
+.btn-ai-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ai-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.ai-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+/* manual override details */
+.manual-override {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.manual-override summary {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  list-style: none;
+  user-select: none;
+}
+.manual-override summary::-webkit-details-marker { display: none; }
+.manual-override summary::before { content: '▸ '; }
+.manual-override[open] summary::before { content: '▾ '; }
+.manual-override[open] { padding-bottom: 14px; }
+.manual-override[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+
+.manual-override > *:not(summary) { padding: 0 14px; }
+
+.override-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+.override-label textarea { margin-top: 4px; }
 
 .design-label {
   font-size: 0.78rem;

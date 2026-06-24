@@ -260,20 +260,34 @@ function renderCardScreen() {
   }
 }
 
-// ── Add / Edit card modal ─────────────────────────────────────────────────────
-let selectedTemplateId = CARD_TEMPLATES[0].id;
-let selectedThemeId    = CARD_TEMPLATES[0].themes[0].id;
+// ── Card designer ─────────────────────────────────────────────────────────────
+const VISIBLE_TEMPLATES = CARD_TEMPLATES.filter(t => !t._hidden);
+let selectedTemplateId = VISIBLE_TEMPLATES[0].id;
+let selectedThemeId    = VISIBLE_TEMPLATES[0].themes[0].id;
+let aiChatHistory      = [];
 
 document.getElementById('add-card-btn').addEventListener('click', () => openCardModal(null));
 
 function openCardModal(card) {
   editingId  = card ? (card.id ?? card._index) : null;
   pendingSvg = card?.card_svg || null;
-  document.getElementById('card-modal-title').textContent = card ? 'Edit Card' : 'New Card';
+  document.getElementById('card-modal-title').textContent = card ? 'Edit Card' : 'Design a Card';
   document.getElementById('card-occasion').value = card ? card.occasion : "Father's Day";
   document.getElementById('card-year').value = card ? card.year : new Date().getFullYear();
   document.getElementById('card-message').value = card ? card.message : '';
   document.getElementById('card-error').classList.add('hidden');
+  document.getElementById('mini-3d-card').classList.remove('open');
+
+  // reset AI chat
+  aiChatHistory = [];
+  const log = document.getElementById('ai-chat-log');
+  log.innerHTML = '<div class="chat-msg chat-msg--assistant">Hey! Tell me what kind of card you\'re going for — a mood, a memory, anything — and I\'ll design it for you. ✦</div>';
+
+  if (card?.card_svg) {
+    pendingSvg = card.card_svg;
+    document.getElementById('mini-front').innerHTML = card.card_svg;
+  }
+
   buildTemplateGrid();
   updateMiniPreview();
   showModal('card-modal');
@@ -281,13 +295,13 @@ function openCardModal(card) {
 
 function buildTemplateGrid() {
   const grid = document.getElementById('template-grid');
-  grid.innerHTML = CARD_TEMPLATES.map(t => `
+  grid.innerHTML = VISIBLE_TEMPLATES.map(t => `
     <button class="tmpl-btn ${t.id === selectedTemplateId ? 'active' : ''}" data-tmpl="${t.id}">${t.name}</button>
   `).join('');
   grid.querySelectorAll('.tmpl-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       selectedTemplateId = btn.dataset.tmpl;
-      selectedThemeId = CARD_TEMPLATES.find(t => t.id === selectedTemplateId).themes[0].id;
+      selectedThemeId = VISIBLE_TEMPLATES.find(t => t.id === selectedTemplateId).themes[0].id;
       buildTemplateGrid();
       buildThemeRow();
       updateMiniPreview();
@@ -297,7 +311,7 @@ function buildTemplateGrid() {
 }
 
 function buildThemeRow() {
-  const tmpl = CARD_TEMPLATES.find(t => t.id === selectedTemplateId);
+  const tmpl = VISIBLE_TEMPLATES.find(t => t.id === selectedTemplateId);
   const row  = document.getElementById('theme-row');
   row.innerHTML = tmpl.themes.map(th => `
     <button class="theme-dot ${th.id === selectedThemeId ? 'active' : ''}" data-theme="${th.id}" title="${th.label}" style="background:${th.accent}"></button>
@@ -311,43 +325,106 @@ function buildThemeRow() {
   });
 }
 
-function currentSvg() {
-  const tmpl    = CARD_TEMPLATES.find(t => t.id === selectedTemplateId);
+function updateMiniPreview() {
+  const tmpl    = VISIBLE_TEMPLATES.find(t => t.id === selectedTemplateId);
   const theme   = tmpl.themes.find(th => th.id === selectedThemeId);
   const occasion = document.getElementById('card-occasion').value;
   const year     = document.getElementById('card-year').value || new Date().getFullYear();
-  return tmpl.render(theme, occasion, year);
-}
-
-function updateMiniPreview() {
-  const svg = currentSvg();
+  const svg = tmpl.render(theme, occasion, year);
   pendingSvg = svg;
   document.getElementById('mini-front').innerHTML = svg;
   document.getElementById('mini-message-text').textContent =
-    document.getElementById('card-message').value || '✦';
+    document.getElementById('card-message').value || 'Your message will appear here';
 }
 
-// re-render preview when occasion/year/message change
 ['card-occasion','card-year','card-message'].forEach(id => {
   document.getElementById(id).addEventListener('input', updateMiniPreview);
 });
 
-// mini card flip
 document.getElementById('mini-3d-scene').addEventListener('click', () => {
   document.getElementById('mini-3d-card').classList.toggle('open');
+});
+
+// ── AI design assistant ───────────────────────────────────────────────────────
+async function sendToAI() {
+  const input    = document.getElementById('ai-chat-input');
+  const text     = input.value.trim();
+  if (!text) return;
+
+  const occasion = document.getElementById('card-occasion').value;
+  const year     = document.getElementById('card-year').value || new Date().getFullYear();
+
+  appendAiMsg('user', text);
+  input.value = '';
+  document.getElementById('ai-send-btn').disabled = true;
+  document.getElementById('ai-loading').classList.remove('hidden');
+
+  aiChatHistory.push({ role: 'user', content: text });
+
+  try {
+    const res  = await fetch('/api/generate-card', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        messages: aiChatHistory,
+        occasion,
+        year,
+        templates: VISIBLE_TEMPLATES.map(t => ({ id: t.id, name: t.name, themes: t.themes.map(th => ({ id: th.id, label: th.label })) })),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || data.error || 'Error');
+
+    aiChatHistory.push({ role: 'assistant', content: JSON.stringify(data) });
+    appendAiMsg('assistant', data.reply || '✦');
+
+    // apply AI choices
+    if (data.template && VISIBLE_TEMPLATES.find(t => t.id === data.template)) {
+      selectedTemplateId = data.template;
+      const tmpl = VISIBLE_TEMPLATES.find(t => t.id === selectedTemplateId);
+      if (data.theme && tmpl.themes.find(th => th.id === data.theme)) {
+        selectedThemeId = data.theme;
+      } else {
+        selectedThemeId = tmpl.themes[0].id;
+      }
+      buildTemplateGrid();
+    }
+    if (data.message) {
+      document.getElementById('card-message').value = data.message;
+    }
+    updateMiniPreview();
+  } catch (err) {
+    appendAiMsg('assistant', 'Something went wrong: ' + err.message);
+  } finally {
+    document.getElementById('ai-send-btn').disabled = false;
+    document.getElementById('ai-loading').classList.add('hidden');
+  }
+}
+
+function appendAiMsg(role, text) {
+  const log = document.getElementById('ai-chat-log');
+  const el  = document.createElement('div');
+  el.className = 'chat-msg chat-msg--' + role;
+  el.textContent = text;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+document.getElementById('ai-send-btn').addEventListener('click', sendToAI);
+document.getElementById('ai-chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendToAI(); }
 });
 
 document.getElementById('card-cancel-btn').addEventListener('click', () => hideModal('card-modal'));
 document.getElementById('card-modal').addEventListener('click', e => { if (e.target.id === 'card-modal') hideModal('card-modal'); });
 
-// lightbox: click card view SVG to enlarge
+// lightbox
 document.addEventListener('click', e => {
   if (e.target.closest('#view-card-front')) {
     const svg = document.querySelector('#view-card-front svg');
     if (!svg) return;
-    const lb = document.getElementById('svg-lightbox');
     document.getElementById('svg-lightbox-inner').innerHTML = svg.outerHTML;
-    lb.classList.remove('hidden');
+    document.getElementById('svg-lightbox').classList.remove('hidden');
   }
   if (e.target.id === 'svg-lightbox') {
     document.getElementById('svg-lightbox').classList.add('hidden');

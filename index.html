@@ -57,38 +57,58 @@
     <!-- Add / Edit card modal -->
     <div id="card-modal" class="modal-overlay hidden">
       <div class="modal card-modal">
-        <h2 id="card-modal-title">New Card</h2>
+        <h2 id="card-modal-title">Design a Card</h2>
+
+        <!-- meta row -->
+        <div class="card-meta-row">
+          <label class="meta-label">Occasion
+            <select id="card-occasion">
+              <option value="Father's Day">Father's Day</option>
+              <option value="Birthday">Birthday</option>
+              <option value="Christmas">Christmas</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label class="meta-label">Year
+            <input type="number" id="card-year" min="1900" max="2100" />
+          </label>
+        </div>
 
         <div class="card-designer">
-          <!-- left: form -->
+          <!-- left: AI chat + manual overrides -->
           <div class="card-designer-form">
-            <label>Occasion
-              <select id="card-occasion">
-                <option value="Father's Day">Father's Day</option>
-                <option value="Birthday">Birthday</option>
-                <option value="Christmas">Christmas</option>
-                <option value="Other">Other</option>
-              </select>
-            </label>
-            <label>Year
-              <input type="number" id="card-year" min="1900" max="2100" />
-            </label>
-            <label>Message <span class="label-hint">(inside the card)</span>
-              <textarea id="card-message" rows="4" placeholder="Write your message here…"></textarea>
-            </label>
-            <div class="design-label">Card Design</div>
-            <div class="template-grid" id="template-grid"></div>
-            <div class="theme-row" id="theme-row"></div>
+            <div class="ai-chat-wrap">
+              <div class="ai-chat-log" id="ai-chat-log">
+                <div class="chat-msg chat-msg--assistant">Hey! Tell me what kind of card you're going for — a mood, a memory, anything — and I'll design it for you. ✦</div>
+              </div>
+              <div class="ai-chat-input-row">
+                <textarea id="ai-chat-input" rows="2" placeholder="e.g. Dark and starry, something emotional about how much he means to me…"></textarea>
+                <button id="ai-send-btn" class="btn-ai-send">Send</button>
+              </div>
+              <div id="ai-loading" class="hidden ai-loading">
+                <div class="ai-spinner"></div><span>Designing…</span>
+              </div>
+            </div>
+
+            <details class="manual-override" id="manual-override">
+              <summary>Manually adjust design</summary>
+              <div class="design-label">Template</div>
+              <div class="template-grid" id="template-grid"></div>
+              <div class="theme-row" id="theme-row"></div>
+              <label class="override-label">Message inside card
+                <textarea id="card-message" rows="4" placeholder="The message written inside the card…"></textarea>
+              </label>
+            </details>
           </div>
 
           <!-- right: live 3D preview -->
           <div class="card-designer-preview">
-            <div class="preview-label">Preview</div>
+            <div class="preview-label">Live Preview</div>
             <div class="mini-3d-scene" id="mini-3d-scene">
               <div class="mini-3d-card" id="mini-3d-card">
                 <div class="mini-face mini-front" id="mini-front"></div>
                 <div class="mini-face mini-back">
-                  <p id="mini-message-text" class="mini-message"></p>
+                  <p id="mini-message-text" class="mini-message">Your message will appear here</p>
                 </div>
               </div>
             </div>

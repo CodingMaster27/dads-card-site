@@ -257,6 +257,7 @@ const CARD_TEMPLATES = [
   {
     id: 'minimal',
     name: 'Minimal Script',
+    _hidden: true,
     themes: [
       { id: 'onyx', label: 'Onyx', primary: '#050505', secondary: '#0c0c0c', accent: '#c9a84c', text: '#f0ece0' },
       { id: 'slate', label: 'Slate', primary: '#070a10', secondary: '#10141e', accent: '#8090b0', text: '#d8e0f0' },
